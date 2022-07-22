@@ -1,0 +1,15 @@
+{
+  "name": "flow-execute-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "run": "node ./src/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {},
+  "dependencies": {
+    "@flow-execute/core": "1.0.0"
+  }
+}
