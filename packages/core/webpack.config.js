@@ -6,7 +6,7 @@ module.exports = {
   output: {
     filename: "flow-execute-core.js", // 打包后的文件名
     path: resolve(__dirname, 'dist'), // 打包后的文件目录：根目录/dist/
-    libraryTarget: 'umd',
+    libraryTarget: 'commonjs2',
   },
   resolve: {
     // webpack 默认只处理js、jsx等js代码

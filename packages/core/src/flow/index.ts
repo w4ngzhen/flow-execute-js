@@ -31,9 +31,11 @@ export class Flow {
     async runFlowNode(flowNode: FlowNode, executeInput: any) {
         // 运行当前SN
         const output = await flowNode.execute(executeInput);
+        console.log(`节点 ${flowNode.id} 执行完成，结果：${JSON.stringify(output)}`)
         const routers = this.findFlowNodeRouter(flowNode.id);
         if (!routers || routers.length === 0) {
             // 没有找到对应的路由，终止
+            console.log('路由未找到')
             return;
         }
         // 找到符合条件的router
@@ -54,6 +56,7 @@ export class Flow {
         const targetNode = this.flowNodes.find(sn => sn.id === targetNodeId);
         if (!targetNode) {
             // 找不到目标node，中止
+            console.log('找不到目标node，中止')
             return;
         }
         // 递归

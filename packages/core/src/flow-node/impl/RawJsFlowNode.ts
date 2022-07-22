@@ -21,7 +21,16 @@ export class RawJsFlowNode
         return "RawJsFlowNode";
     }
 
-    execute(input: RawJsFlowNodeInput): Promise<void | undefined | null | RawJsFlowNodeOutput> {
-        return Promise.resolve(undefined);
+    async execute(input: RawJsFlowNodeInput): Promise<void | undefined | null | RawJsFlowNodeOutput> {
+        // const funcObj = new Function(this.context.jsCode);
+        const func = async (input) => {
+            // fixme
+            return await eval(this.context.jsCode);
+            // return await funcObj.apply(undefined, input);
+        }
+        const res = await func(input);
+        console.log(`code: ${this.context.jsCode}, args: ${JSON.stringify(input)}`);
+        console.log(`res: ${JSON.stringify(res)}`)
+        return res;
     }
 }
