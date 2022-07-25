@@ -1,5 +1,7 @@
 import {AbstractFlowNode} from "../AbstractFlowNode";
 import {FlowNodeDataPack} from "../../types/flow-node";
+import axios, {AxiosResponse} from 'axios';
+import Qs from 'qs';
 
 export interface ApiFlowNodeContext {
     /**
@@ -9,9 +11,9 @@ export interface ApiFlowNodeContext {
     /**
      * 请求方法
      */
-    method: 'GET' | 'POST' | 'DELETE' | 'PUT' | 'HEAD';
+    method: 'GET' | 'POST' | 'DELETE' | 'PUT' | 'HEAD' | 'PATCH';
     /**
-     * 请求类型
+     * 在headers中会特别添加该配置
      */
     contentType: 'application/json' | 'application/x-www-form-urlencoded';
     /**
@@ -19,9 +21,17 @@ export interface ApiFlowNodeContext {
      */
     headerFields: string[];
     /**
+     * 需要从inputDataPack提取的字段/数据放在请求Query参数中
+     */
+    paramFields: string[];
+    /**
      * 响应适配
      */
-    responseAdapter?: string | Function | ((originalResponse: any) => any)
+    responseAdapter?: string | Function | ((originalResponse: any) => any);
+    /**
+     * 超时
+     */
+    timeout: number;
 }
 
 export class ApiFlowNode extends AbstractFlowNode<ApiFlowNodeContext> {
@@ -37,54 +47,66 @@ export class ApiFlowNode extends AbstractFlowNode<ApiFlowNodeContext> {
             method,
             contentType,
             headerFields,
-            responseAdapter
+            paramFields,
+            responseAdapter,
+            timeout
         } = this.context;
 
-        const propKeys = Object.keys(inputDataPack);
-
-        let formattedUrl = url;
-        let body = null;
-        if (['POST', 'PUT'].indexOf(method) >= 0) {
-            if (contentType === 'application/x-www-form-urlencoded') {
-                body = new FormData();
-                propKeys.forEach(propKey => {
-                    body.append(propKey, inputDataPack[propKey]);
-                })
-            } else {
-                // json
-                body = {
-                    ...inputDataPack
-                }
-            }
-        } else if (method === 'GET') {
-
-            const query = propKeys
-                .map(propKey => `${propKey}=${inputDataPack[propKey]}`)
-                .join('&')
-            formattedUrl += ('?' + query);
-        }
-
-        // header
-        const headers = {};
+        // 如果配置了headerFields，
+        // 则会将inputDataPack中提取到headers中
+        const headers = {
+            'content-type': contentType
+        };
         (headerFields || []).forEach(headerField => {
             headers[headerField] = inputDataPack[headerField]
-        })
+        });
 
-        const originalJsonResp = await fetch(
-            formattedUrl, {
-                method,
-                headers,
-                body
-            }).then((response) => response.json());
+        let data;
+        // 特别的，如果headers最终的 'content-type' = 'application/application/x-www-form-urlencoded'
+        if (headers['content-type'] === 'application/x-www-form-urlencoded') {
+            data = Qs.stringify({...inputDataPack});
+        } else {
+            // 默认情况下，只会将inputDataPack中的数据填充至data，
+            // 以HTTP Body情况发送（当然仅适用 'PUT', 'POST', 'DELETE 和 'PATCH' 请求方法）
+            data = {...inputDataPack}
+        }
+
+        // 如果配置了paramFields，则会将inputDataPack中对应提取到params中
+        const params = {};
+        (paramFields || []).forEach(paramField => {
+            params[paramField] = inputDataPack[paramField];
+        });
+
+        // 构造
+        const axiosInstance = axios.create({
+            timeout
+        });
+
+        const originalAxiosResp: AxiosResponse = await axiosInstance.request({
+            url,
+            method,
+            headers,
+            params,
+            data
+        });
+
+        const originalResp = {
+            status: originalAxiosResp.status,
+            statusText: originalAxiosResp.statusText,
+            data: originalAxiosResp.data,
+            headers: {
+                ...originalAxiosResp.headers
+            }
+        }
 
         if (!responseAdapter) {
-            return originalJsonResp;
+            return originalResp;
         }
 
         const respAdapterFunc: Function = typeof responseAdapter === 'string'
-            ? new Function('originalResponse', responseAdapter, originalJsonResp)
+            ? new Function('originalResponse', responseAdapter)
             : responseAdapter;
-        return respAdapterFunc.apply(null, [originalJsonResp])
+        return respAdapterFunc.apply(null, [originalResp])
     }
 
 }

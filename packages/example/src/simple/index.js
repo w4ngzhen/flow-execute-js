@@ -49,7 +49,7 @@ const rawJsFlowNode2 = new RawJsFlowNode({
 });
 
 const apiFlowNode = new ApiFlowNode({
-  id: '3',
+  uuid: '3',
   desc: '根据ID获取服务端用户信息',
   context: {
     url: 'http://localhost:3000/getUserInfoById',
@@ -118,8 +118,10 @@ flow.addRouter(router1);
 flow.addRouter(router2);
 flow.addRouter(router3);
 
-(async function run() {
-  const path = await flow.run('1', {initData: {name: 'wz'}});
-  const display = path.map(node => node.toString()).join(" -> ");
-  console.log('执行路径：\n' + display);
-})();
+document.querySelector('#btn').addEventListener('click', () => {
+  (async function run() {
+    const path = await flow.run('1', {initData: {name: 'wz'}});
+    const display = path.map(node => node.toString()).join(" -> ");
+    console.log('执行路径：\n' + display);
+  })();
+});

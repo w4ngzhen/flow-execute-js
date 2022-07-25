@@ -5,7 +5,7 @@
   "main": "dist/flow-execute-core.js",
   "types": "src/index.ts",
   "scripts": {
-    "build": "webpack --config webpack.config.js --mode development"
+    "build:core": "webpack --config webpack.config.js --mode development"
   },
   "author": "",
   "license": "ISC",
@@ -20,5 +20,7 @@
     "webpack": "^5.73.0",
     "webpack-cli": "^4.10.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "axios": "^0.27.2"
+  }
 }

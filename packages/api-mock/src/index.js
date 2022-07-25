@@ -1,5 +1,8 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
+
+app.use(cors());
 
 // 路由：字符串类型
 app.get('/getUserInfoById', function (req, res) {
