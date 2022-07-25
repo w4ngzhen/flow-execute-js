@@ -1,6 +1,7 @@
+type ExpressionCode = string;
 export interface RouterCondition {
     type: 'always' | 'expression';
-    expression?: string | Function | (() => boolean);
+    expression?: ExpressionCode | Function | (() => boolean);
 }
 
 export interface Router {

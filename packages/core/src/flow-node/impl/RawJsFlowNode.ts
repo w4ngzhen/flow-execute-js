@@ -1,36 +1,36 @@
 import {AbstractFlowNode} from "../AbstractFlowNode";
+import {FlowNodeDataPack} from "../../types/flow-node";
 
 export interface RawJsFlowNodeContext {
     jsCode: string;
 }
 
-export interface RawJsFlowNodeInput {
-
-}
-
-export interface RawJsFlowNodeOutput {
-
-}
-
 export class RawJsFlowNode
-    extends AbstractFlowNode<RawJsFlowNodeContext,
-        RawJsFlowNodeInput,
-        RawJsFlowNodeOutput> {
+    extends AbstractFlowNode<RawJsFlowNodeContext> {
 
-    get type(): string {
+    get flowNodeType(): string {
         return "RawJsFlowNode";
     }
 
-    async execute(input: RawJsFlowNodeInput): Promise<void | undefined | null | RawJsFlowNodeOutput> {
-        // const funcObj = new Function(this.context.jsCode);
-        const func = async (input) => {
-            // fixme
-            return await eval(this.context.jsCode);
-            // return await funcObj.apply(undefined, input);
-        }
-        const res = await func(input);
-        console.log(`code: ${this.context.jsCode}, args: ${JSON.stringify(input)}`);
-        console.log(`res: ${JSON.stringify(res)}`)
-        return res;
+    async execute(
+        inputDataPack: FlowNodeDataPack,
+        flowContext: any
+    ): Promise<any> {
+        // 结构代码
+        const {jsCode} = this.context;
+        const argNameList = [];
+        const argValueList = [];
+        Object.keys(inputDataPack).forEach(key => {
+            argNameList.push(key);
+            argValueList.push(inputDataPack[key]);
+        })
+        // "arg1, arg2, arg3, $flowContext"
+        const funcInvokeArgNameStr = [...argNameList, '$flowContext'].join(", ");
+        // [argVal1, argVal2, argVal3, { //$flowContext}]
+        const funcInvokeArgDataArr = [...argValueList, {}];
+        const func = new Function(funcInvokeArgNameStr, jsCode);
+        const invokeResult: any =
+            await func.apply(null, funcInvokeArgDataArr);
+        return invokeResult;
     }
 }
