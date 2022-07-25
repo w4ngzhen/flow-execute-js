@@ -28,13 +28,20 @@ export class Flow {
             throw new Error('Cannot find the start FlowNode: ' + startNodeId);
         }
         const flowNodeExecutePath: FlowNode[] = [];
-        await this.runFlowNode(startNode, startInput, flowNodeExecutePath);
+        const logRecords: string[] = [];
+        await this.runFlowNode(
+            startNode,
+            startInput,
+            flowNodeExecutePath,
+            logRecords
+        );
         return flowNodeExecutePath;
     }
 
     async runFlowNode(flowNode: FlowNode,
                       inputDataPack: FlowNodeDataPack,
-                      flowNodePath: FlowNode[]) {
+                      flowNodePath: FlowNode[],
+                      logRecords: string[]) {
 
         flowNodePath.push(flowNode);
 
@@ -86,7 +93,7 @@ export class Flow {
             return;
         }
         // 递归
-        await this.runFlowNode(targetNode, currentNodeOutputDataPack, flowNodePath);
+        await this.runFlowNode(targetNode, currentNodeOutputDataPack, flowNodePath, logRecords);
     }
 
     /**

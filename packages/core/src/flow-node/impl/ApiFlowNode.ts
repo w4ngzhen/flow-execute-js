@@ -42,17 +42,26 @@ export class ApiFlowNode extends AbstractFlowNode<ApiFlowNodeContext> {
 
         const propKeys = Object.keys(inputDataPack);
 
+        let formattedUrl = url;
         let body = null;
-        if (contentType === 'application/x-www-form-urlencoded') {
-            body = new FormData();
-            propKeys.forEach(propKey => {
-                body.append(propKey, inputDataPack[propKey]);
-            })
-        } else {
-            // json
-            body = {
-                ...inputDataPack
+        if (['POST', 'PUT'].indexOf(method) >= 0) {
+            if (contentType === 'application/x-www-form-urlencoded') {
+                body = new FormData();
+                propKeys.forEach(propKey => {
+                    body.append(propKey, inputDataPack[propKey]);
+                })
+            } else {
+                // json
+                body = {
+                    ...inputDataPack
+                }
             }
+        } else if (method === 'GET') {
+
+            const query = propKeys
+                .map(propKey => `${propKey}=${inputDataPack[propKey]}`)
+                .join('&')
+            formattedUrl += ('?' + query);
         }
 
         // header
@@ -61,11 +70,12 @@ export class ApiFlowNode extends AbstractFlowNode<ApiFlowNodeContext> {
             headers[headerField] = inputDataPack[headerField]
         })
 
-        const originalJsonResp = await fetch(url, {
-            method,
-            headers,
-            body
-        }).then((response) => response.json());
+        const originalJsonResp = await fetch(
+            formattedUrl, {
+                method,
+                headers,
+                body
+            }).then((response) => response.json());
 
         if (!responseAdapter) {
             return originalJsonResp;
