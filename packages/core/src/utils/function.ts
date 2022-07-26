@@ -1,10 +1,10 @@
-import {FlowNodeDataPack} from "../types/flow-node";
+import {ExecutionDataPack} from "../types/flow-node";
 
 /**
  * 根据数据包生成函数调用的参数名列表和参数值列表
  * @param dataPack
  */
-export function getFuncInvokeArgList(dataPack: FlowNodeDataPack): {
+export function getFuncInvokeArgList(dataPack: ExecutionDataPack): {
     argNameList: string[],
     argValueList: any[]
 } {

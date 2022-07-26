@@ -1,19 +1,16 @@
-import {AbstractFlowNode} from "../AbstractFlowNode";
-import {FlowNodeDataPack} from "../../types/flow-node";
+import {AbstractFlowNodeExecutor} from "../AbstractFlowNodeExecutor";
+import {RawJsFlowNodeContext} from "../../../types/schema/flow-node/raw-js-flow-node-schema";
+import {ExecutionDataPack} from "../../../types/executor";
 
-export interface RawJsFlowNodeContext {
-    jsCode: string;
-}
-
-export class RawJsFlowNode
-    extends AbstractFlowNode<RawJsFlowNodeContext> {
+export class RawJsFlowNodeExecutor
+    extends AbstractFlowNodeExecutor<RawJsFlowNodeContext> {
 
     get flowNodeType(): string {
-        return "RawJsFlowNode";
+        return "RawJsFlowNodeExecutor";
     }
 
     async execute(
-        inputDataPack: FlowNodeDataPack,
+        inputDataPack: ExecutionDataPack,
         flowContext: any
     ): Promise<any> {
         // 结构代码

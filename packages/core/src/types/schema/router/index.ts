@@ -25,7 +25,7 @@ export interface RouterCondition {
  * 路由
  * 两个流程节点的连接路径
  */
-export interface Router {
+export interface RouterSchema {
     /**
      * 路由唯一ID
      */

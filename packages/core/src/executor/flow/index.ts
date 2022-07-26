@@ -1,38 +1,51 @@
-import {Router} from "../router";
-import {FlowNodeDataFieldDef, FlowNodeDataPack, FlowNodeExecutionSnapshot} from "../types/flow-node";
-import {AbstractFlowNode} from "../flow-node/AbstractFlowNode";
+import {AbstractFlowNodeExecutor} from "../flow-node/AbstractFlowNodeExecutor";
 import {FlowWalker} from "./flow-walker";
-import {getFuncInvokeArgList} from "../utils/function";
+import {getFuncInvokeArgList} from "../../utils/function";
 import * as _ from "lodash";
+import {RouterSchema} from "../../types/schema/router";
+import {FlowNodeDataFieldDef, FlowNodeSchema} from "../../types/schema/flow-node/flow-node-schema";
+import {ApiFlowNodeExecutor} from "../flow-node/impl/ApiFlowNodeExecutor";
+import {RawJsFlowNodeExecutor} from "../flow-node/impl/RawJsFlowNodeExecutor";
+import {FlowNodeExecutionAspectHandler, FlowNodeExecutionSnapshot} from "../../types/executor/flow-node";
+import {FlowExecutorConfig} from "../../types/executor/flow";
+import {ExecutionDataPack} from "../../types/executor";
 
-/**
- * 流程节点执行切面处理器
- */
-type FlowNodeExecutionAspectHandler =
-    (flowNode: AbstractFlowNode, flowNodeOutputDataPack: FlowNodeDataPack)
-        => Promise<{ outputDataPack: FlowNodeDataPack }>
+export class FlowExecutor {
 
-/**
- * 流程配置
- */
-export interface FlowConfig {
-    snapshotDetailRecordEnable: boolean;
-    flowNodeExecutionAspectHandler: FlowNodeExecutionAspectHandler;
-}
 
-export class Flow {
+    private flowExecutorConfig: FlowExecutorConfig;
+
+    get flowId() {
+        return this.flowExecutorConfig.flowId;
+    }
+
+    get flowName() {
+        return this.flowExecutorConfig.flowName;
+    }
+
+    get startFlowNodeId() {
+        return this.flowExecutorConfig.startFlowNodeId;
+    }
+
+    get inputDataFieldDefs() {
+        return this.flowExecutorConfig.inputDataFieldDefs;
+    }
+
+    get outputDataFieldDefs() {
+        return this.flowExecutorConfig.outputDataFieldDefs;
+    }
 
     /**
      * 存储的所有流程节点
      * @private
      */
-    private readonly flowNodes: AbstractFlowNode[];
+    private readonly flowNodeExecutors: AbstractFlowNodeExecutor[];
 
     /**
      * 存储的所有路由
      * @private
      */
-    private readonly routers: Router[];
+    private readonly routerSchemas: RouterSchema[];
 
     /**
      * 流程节点执行切面处理器
@@ -48,10 +61,12 @@ export class Flow {
      */
     private readonly snapshotDetailRecordEnable: boolean;
 
-    constructor(config?: FlowConfig) {
-        this.flowNodes = [];
-        this.routers = [];
+    constructor(config?: FlowExecutorConfig) {
+        this.flowNodeExecutors = [];
+        this.routerSchemas = [];
         const {
+            flowNodeSchemas,
+            routerSchemas,
             snapshotDetailRecordEnable,
             flowNodeExecutionAspectHandler
         } = config || {};
@@ -59,61 +74,80 @@ export class Flow {
         this.flowNodeExecutionAspectHandler = flowNodeExecutionAspectHandler;
         // 是否启用快照详细记录
         this.snapshotDetailRecordEnable = snapshotDetailRecordEnable;
+        // todo comment
+        (flowNodeSchemas || []).forEach(flowNodeSchema => {
+            this.setupFlowNodeExecutor(flowNodeSchema);
+        });
+        (routerSchemas || []).forEach(routerSchema => {
+            this.setupRouter(routerSchema);
+        });
+
     }
 
-    addFlowNode(flowNode: AbstractFlowNode) {
-        this.flowNodes.push(flowNode);
-    }
-
-    addRouter(router: Router) {
-        this.routers.push(router);
-    }
-
-    async run(startNodeId: string,
-              startInputDataPack: FlowNodeDataPack): Promise<FlowWalker> {
-        const startNode = this.flowNodes.find(node => node.uuid === startNodeId);
-        if (!startNode) {
-            throw new Error('Cannot find the start FlowNode: ' + startNodeId);
+    private setupFlowNodeExecutor(flowNodeSchema: FlowNodeSchema<any>) {
+        const {type} = flowNodeSchema;
+        let flowNodeExecutor;
+        if (type === 'ApiFlowNode') {
+            flowNodeExecutor = new ApiFlowNodeExecutor(flowNodeSchema);
+        } else if (type === 'RawJsFlowNode') {
+            flowNodeExecutor = new RawJsFlowNodeExecutor(flowNodeSchema);
         }
+        this.flowNodeExecutors.push(flowNodeExecutor);
+    }
+
+    private setupRouter(routerSchema: RouterSchema) {
+        this.routerSchemas.push(routerSchema);
+    }
+
+    async execute(inputDataPack: ExecutionDataPack)
+        : Promise<ExecutionDataPack> {
+        const startNodeExecutor =
+            this.flowNodeExecutors.find(node => node.uuid === this.startFlowNodeId);
         const walker = new FlowWalker({
             snapshotDetailRecordEnable: this.snapshotDetailRecordEnable
         })
-        await this.runFlowNode(
-            startNode,
-            startInputDataPack,
+        const result = await this.innerExecute(
+            startNodeExecutor,
+            inputDataPack,
             walker
         );
-        return walker;
+
+        if (!result) {
+            console.error('流程执行异常终止');
+            return {};
+        }
+        return result;
     }
 
-    async runFlowNode(flowNode: AbstractFlowNode,
-                      inputDataPack: FlowNodeDataPack,
-                      flowWalker: FlowWalker): Promise<void> {
 
-        console.debug(`\n\n\n=== 准备处理节点: ${flowNode.toString()} ===`);
+    async innerExecute(flowNodeExecutor: AbstractFlowNodeExecutor,
+                       inputDataPack: ExecutionDataPack,
+                       flowWalker: FlowWalker): Promise<ExecutionDataPack | undefined> {
 
-        // 准备当前节点的输入数据集
-        const currentNodeInputDataPack = Flow.pickArgsFromInputDataPack(flowNode.inputDataFieldDefs, inputDataPack);
+        console.debug(`\n\n\n=== 准备处理节点: ${flowNodeExecutor.toString()} ===`);
+
+        // 准备当前节点的输入数据包
+        const currentNodeInputDataPack = FlowExecutor.pickArgsFromInputDataPack(flowNodeExecutor.inputDataFieldDefs, inputDataPack);
         console.debug('解析节点输入数据包（inputDataPack）', currentNodeInputDataPack)
 
         // 准备初始的snapshot
         const currentNodeSnapshot: FlowNodeExecutionSnapshot = {
-            flowNode: flowNode,
+            flowNodeSchema: flowNodeExecutor.flowNodeSchema,
             inputDataPack: inputDataPack,
             startTime: new Date(),
         };
 
 
         // 切面封装
-        const aspectHandle = async (flowNode: AbstractFlowNode,
-                                    originalOutputDataPack: FlowNodeDataPack): Promise<FlowNodeDataPack> => {
+        const aspectHandle = async (flowNodeSchema: FlowNodeSchema<any>,
+                                    originalOutputDataPack: ExecutionDataPack): Promise<ExecutionDataPack> => {
             if (!this.flowNodeExecutionAspectHandler
                 || typeof this.flowNodeExecutionAspectHandler !== 'function') {
                 return originalOutputDataPack;
             }
             // 如配置了切面handler，那么使用handler进行数据处理
             try {
-                const handledOutputData = await this.flowNodeExecutionAspectHandler(flowNode, originalOutputDataPack);
+                const handledOutputData = await this.flowNodeExecutionAspectHandler(flowNodeSchema, originalOutputDataPack);
                 if (typeof originalOutputDataPack !== 'undefined'
                     && typeof handledOutputData === 'undefined') {
                     console.warn('你可能在flowNodeExecutionAspectHandler忘记了返回数据？')
@@ -133,17 +167,17 @@ export class Flow {
             console.debug('执行该节点')
 
             // 执行节点自身逻辑，得到自身逻辑的数据（不是数据包）
-            const currentNodeOutput = await flowNode.execute(currentNodeInputDataPack, {});
+            const currentNodeOutput = await flowNodeExecutor.execute(currentNodeInputDataPack, {});
             // 根据字段定义和生成的数据进行处理，生成Output数据包，具体逻辑见实现
-            const currentNodeOutputDataPack = Flow.buildFromOutputDataPack(flowNode.outputDataFieldDefs, currentNodeOutput);
+            const currentNodeOutputDataPack = FlowExecutor.buildFromOutputDataPack(flowNodeExecutor.outputDataFieldDefs, currentNodeOutput);
 
-            currentNodeSnapshot.outputDataPack = await aspectHandle(flowNode, currentNodeOutputDataPack);
+            currentNodeSnapshot.outputDataPack = await aspectHandle(flowNodeExecutor.flowNodeSchema, currentNodeOutputDataPack);
             currentNodeSnapshot.finishTime = new Date();
 
             // 记录snapshot信息
             flowWalker.record(currentNodeSnapshot);
 
-            console.debug(`节点 ${flowNode.toString()} 执行完成`)
+            console.debug(`节点 ${flowNodeExecutor.toString()} 执行完成`)
             console.debug(`节点本身执行结果（outputData）：`, currentNodeOutput)
             console.debug(`节点执行结果数据包（outputDataPack）：`, currentNodeOutputDataPack);
         } catch (e) {
@@ -161,15 +195,15 @@ export class Flow {
             return;
         }
 
-        const routers = this.findFlowNodeRouter(flowNode.uuid);
+        const routers = this.findFlowNodeRouter(flowNodeExecutor.uuid);
         if (routers.length === 0) {
             // 没有找到对应的路由，终止
             console.debug('路由为空，流程结束');
-            return;
+            return currentNodeSnapshot.outputDataPack;
         }
 
         // 找到符合条件的router
-        let satisfiedRouter: Router | null = null;
+        let satisfiedRouter: RouterSchema | null = null;
         for (let i = 0; i < routers.length; i++) {
             const router = routers[i];
             const isSatisfied = await this.routerConditionCalculate(router, currentNodeSnapshot.outputDataPack);
@@ -185,7 +219,7 @@ export class Flow {
             return;
         }
         const targetNodeId = satisfiedRouter.targetNodeId;
-        const targetNode = this.flowNodes.find(sn => sn.uuid === targetNodeId);
+        const targetNode = this.flowNodeExecutors.find(sn => sn.uuid === targetNodeId);
         if (!targetNode) {
             // 找不到目标node，中止
             // todo 可以增加日志记录
@@ -193,7 +227,7 @@ export class Flow {
         }
 
         // 递归（目标节点以及当前节点的输出，作为递归的输入）
-        await this.runFlowNode(targetNode, currentNodeSnapshot.outputDataPack, flowWalker);
+        return await this.innerExecute(targetNode, currentNodeSnapshot.outputDataPack, flowWalker);
     }
 
     /**
@@ -204,10 +238,10 @@ export class Flow {
      */
     static pickArgsFromInputDataPack(
         inputDataFieldDefList: FlowNodeDataFieldDef[],
-        inputDataPack: FlowNodeDataPack): FlowNodeDataPack {
+        inputDataPack: ExecutionDataPack): ExecutionDataPack {
 
         const _inputDataPack = inputDataPack || {};
-        const filteredDataPack: FlowNodeDataPack = {};
+        const filteredDataPack: ExecutionDataPack = {};
 
         inputDataFieldDefList.forEach(def => {
             const argName = def.name;
@@ -227,7 +261,7 @@ export class Flow {
      */
     static buildFromOutputDataPack(
         outputDataFieldDefs: FlowNodeDataFieldDef[],
-        flowNodeOutputData: any): FlowNodeDataPack {
+        flowNodeOutputData: any): ExecutionDataPack {
 
         if (!outputDataFieldDefs || outputDataFieldDefs.length === 0) {
             return {};
@@ -235,7 +269,7 @@ export class Flow {
 
         if (outputDataFieldDefs.length === 1) {
             const [firstDef] = outputDataFieldDefs;
-            const outputDataPack: FlowNodeDataPack = {};
+            const outputDataPack: ExecutionDataPack = {};
             outputDataPack[firstDef.name] = flowNodeOutputData;
             return outputDataPack;
         }
@@ -245,7 +279,7 @@ export class Flow {
             //fixme
             throw new Error('无法对flowNodeOutputData映射到pack中');
         }
-        const outputDataPack: FlowNodeDataPack = {};
+        const outputDataPack: ExecutionDataPack = {};
         outputDataFieldDefs.forEach(def => {
             const fieldName = def.name;
             outputDataPack[fieldName] = flowNodeOutputData[fieldName];
@@ -253,12 +287,12 @@ export class Flow {
         return outputDataPack;
     }
 
-    private findFlowNodeRouter(flowNodeId: string): Router[] {
-        return this.routers.filter(r => r.startNodeId === flowNodeId);
+    private findFlowNodeRouter(flowNodeId: string): RouterSchema[] {
+        return this.routerSchemas.filter(r => r.startNodeId === flowNodeId);
     }
 
-    private async routerConditionCalculate(router: Router,
-                                           flowNodeDataPack: FlowNodeDataPack)
+    private async routerConditionCalculate(router: RouterSchema,
+                                           flowNodeDataPack: ExecutionDataPack)
         : Promise<boolean> {
         const {
             type: routerConditionType,

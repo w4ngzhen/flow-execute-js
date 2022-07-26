@@ -1,12 +1,12 @@
-const {Flow, RawJsFlowNode, ApiFlowNode} = require('@flow-execute/core');
-const flow = new Flow({
+const {FlowExecutor, RawJsFlowNodeExecutor, ApiFlowNodeExecutor} = require('@flow-execute/core');
+const flow = new FlowExecutor({
   flowNodeExecutionAspectHandler: (flowNode, outputDataPack) => {
     console.log('[flowNodeExecutionAspectHandler] - 当前要处理的节点：', flowNode);
     console.log('[flowNodeExecutionAspectHandler] - outputDataPack：', outputDataPack);
     return outputDataPack;
   }
 });
-const rawJsFlowNode1 = new RawJsFlowNode({
+const rawJsFlowNode1 = new RawJsFlowNodeExecutor({
   uuid: '1',
   desc: '根据initData得到基本的用户信息',
   context: {
@@ -30,7 +30,7 @@ const rawJsFlowNode1 = new RawJsFlowNode({
   ]
 });
 
-const rawJsFlowNode2 = new RawJsFlowNode({
+const rawJsFlowNode2 = new RawJsFlowNodeExecutor({
   uuid: '2',
   desc: '打印用户信息，并计算一个id',
   context: {
@@ -54,7 +54,7 @@ const rawJsFlowNode2 = new RawJsFlowNode({
   ]
 });
 
-const apiFlowNode = new ApiFlowNode({
+const apiFlowNode = new ApiFlowNodeExecutor({
   uuid: '3',
   desc: '根据ID获取服务端用户信息',
   context: {
@@ -75,7 +75,7 @@ const apiFlowNode = new ApiFlowNode({
   ]
 });
 
-const rawJsFlowNode4 = new RawJsFlowNode({
+const rawJsFlowNode4 = new RawJsFlowNodeExecutor({
   uuid: '4',
   desc: '打印服务端用户信息',
   context: {
@@ -139,8 +139,8 @@ async function run() {
   let flowSnapshotRecords = flowWalker.flowSnapshotRecords;
   console.log('flowSnapshotRecords', flowSnapshotRecords);
   const executionPath = flowSnapshotRecords.map(snapshot => {
-    const {flowNode} = snapshot;
-    return flowNode.toString();
+    const {flowNodeSchema} = snapshot;
+    return flowNodeSchema.toString();
   }).join(" -> ");
   console.log('执行路径：\n' + executionPath);
 }

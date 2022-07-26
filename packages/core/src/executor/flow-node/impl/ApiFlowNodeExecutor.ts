@@ -1,46 +1,16 @@
-import {AbstractFlowNode} from "../AbstractFlowNode";
-import {FlowNodeDataPack} from "../../types/flow-node";
+import {AbstractFlowNodeExecutor} from "../AbstractFlowNodeExecutor";
 import axios, {AxiosResponse} from 'axios';
 import * as Qs from 'qs';
+import {ApiFlowNodeContext} from "../../../types/schema/flow-node/api-flow-node-schema";
+import {ExecutionDataPack} from "../../../types/executor";
 
-export interface ApiFlowNodeContext {
-    /**
-     * 请求地址
-     */
-    url: string;
-    /**
-     * 请求方法
-     */
-    method: 'GET' | 'POST' | 'DELETE' | 'PUT' | 'HEAD' | 'PATCH';
-    /**
-     * 在headers中会特别添加该配置
-     */
-    contentType: 'application/json' | 'application/x-www-form-urlencoded';
-    /**
-     * 需要从inputDataPack中提取的字段放在header中
-     */
-    headerFields: string[];
-    /**
-     * 需要从inputDataPack提取的字段/数据放在请求Query参数中
-     */
-    paramFields: string[];
-    /**
-     * 响应适配
-     */
-    responseAdapter?: string | Function | ((originalResponse: any) => any);
-    /**
-     * 超时
-     */
-    timeout: number;
-}
-
-export class ApiFlowNode extends AbstractFlowNode<ApiFlowNodeContext> {
+export class ApiFlowNodeExecutor extends AbstractFlowNodeExecutor<ApiFlowNodeContext> {
 
     get flowNodeType(): string {
-        return "ApiFlowNode";
+        return "ApiFlowNodeExecutor";
     }
 
-    async execute(inputDataPack: FlowNodeDataPack, globalContext: any): Promise<any> {
+    async execute(inputDataPack: ExecutionDataPack, globalContext: any): Promise<any> {
 
         const {
             url,

@@ -1,6 +1,5 @@
-import {AbstractFlowNode} from "../flow-node/AbstractFlowNode";
 import * as _ from 'lodash';
-import {FlowNodeExecutionSnapshot} from "../types/flow-node";
+import {FlowNodeExecutionSnapshot} from "../../types/executor/flow-node";
 
 
 /**
@@ -73,8 +72,8 @@ export class FlowWalker {
 
     record(snapshot: FlowNodeExecutionSnapshot) {
         this._flowSnapshotRecords.push(snapshot);
-        const {flowNode} = snapshot;
-        const {uuid} = flowNode;
+        const {flowNodeSchema} = snapshot;
+        const {uuid} = flowNodeSchema;
         if (this._snapshotDetailRecordEnable) {
             this._flowNodeSnapshotDetailRecord[uuid] = {
                 snapshotLogTime: new Date(),
