@@ -1,5 +1,10 @@
 const {Flow, RawJsFlowNode, ApiFlowNode} = require('@flow-execute/core');
-const flow = new Flow();
+const flow = new Flow({
+  flowNodeExecutionAspectHandler: (flowNode, outputDataPack) => {
+    console.log('[flowNodeExecutionAspectHandler] - 当前要处理的节点：', flowNode);
+    console.log('[flowNodeExecutionAspectHandler] - outputDataPack：', outputDataPack);
+  }
+});
 const rawJsFlowNode1 = new RawJsFlowNode({
   uuid: '1',
   desc: '根据initData得到基本的用户信息',
@@ -118,10 +123,19 @@ flow.addRouter(router1);
 flow.addRouter(router2);
 flow.addRouter(router3);
 
+async function run() {
+  const flowWalker = await flow.run('1', {initData: {name: 'wz'}});
+  let flowSnapshotRecords = flowWalker.flowSnapshotRecords;
+  console.log('flowSnapshotRecords', flowSnapshotRecords);
+  const executionPath = flowSnapshotRecords.map(snapshot => {
+    const {flowNode} = snapshot;
+    return flowNode.toString();
+  }).join(" -> ");
+  console.log('执行路径：\n' + executionPath);
+}
+
 document.querySelector('#btn').addEventListener('click', () => {
-  (async function run() {
-    const path = await flow.run('1', {initData: {name: 'wz'}});
-    const display = path.map(node => node.toString()).join(" -> ");
-    console.log('执行路径：\n' + display);
+  (async () => {
+    await run();
   })();
 });

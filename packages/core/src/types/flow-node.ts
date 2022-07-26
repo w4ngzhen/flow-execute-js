@@ -1,19 +1,11 @@
+import {AbstractFlowNode} from "../flow-node/AbstractFlowNode";
+
 /**
  * 流程中节点间的数据传递数据包
  */
 export interface FlowNodeDataPack {
     [key: string]: any;
 }
-
-/**
- * 流程节点数据字段类型
- */
-export type FlowNodeDataFieldType =
-    'STRING'
-    | 'NUMBER'
-    | 'BOOLEAN'
-    | 'ARRAY'
-    | 'OBJECT';
 
 /**
  * 流程节点的能够接受的输入数据字段
@@ -64,4 +56,41 @@ export interface FlowNodeConfig<ContextT> {
      * 该节点的输出定义
      */
     outputDataFieldDefs: FlowNodeDataFieldDef[] | undefined
+}
+
+/**
+ * 某个流程节点执行快照
+ * 记录执行的流程节点和当时的输入、输出数据包
+ */
+export interface FlowNodeExecutionSnapshot {
+    /**
+     * 快照对应的流程节点
+     */
+    flowNode: AbstractFlowNode;
+    /**
+     * 流程节点的输入数据包
+     */
+    inputDataPack?: FlowNodeDataPack;
+    /**
+     * 流程节点执行开始时间
+     */
+    startTime?: Date;
+    /**
+     * 流程节点执行完成后的输出数据包
+     */
+    outputDataPack?: FlowNodeDataPack;
+    /**
+     * 流程节点执行的结束时间
+     */
+    finishTime?: Date;
+    /**
+     * 执行是否出错
+     */
+    isExecutionError?: boolean;
+    /**
+     * 执行报错对象
+     */
+    error?: Error;
+
+    // todo 后续可以有更多的记录
 }
