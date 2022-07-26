@@ -1,7 +1,7 @@
 import {AbstractFlowNode} from "../AbstractFlowNode";
 import {FlowNodeDataPack} from "../../types/flow-node";
 import axios, {AxiosResponse} from 'axios';
-import Qs from 'qs';
+import * as Qs from 'qs';
 
 export interface ApiFlowNodeContext {
     /**

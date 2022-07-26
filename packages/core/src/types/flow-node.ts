@@ -26,7 +26,7 @@ export interface FlowNodeDataFieldDef {
 /**
  * 流程节点构造函数的参数
  */
-export interface FlowNodeConstructorArgs<ContextT> {
+export interface FlowNodeConfig<ContextT> {
     /**
      * 节点唯一ID
      */

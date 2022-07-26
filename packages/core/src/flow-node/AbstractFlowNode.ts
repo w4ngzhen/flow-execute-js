@@ -1,10 +1,10 @@
 import {
-    FlowNodeConstructorArgs,
+    FlowNodeConfig,
     FlowNodeDataFieldDef,
     FlowNodeDataPack
 } from "../types/flow-node";
 
-export abstract class AbstractFlowNode<ContextT> {
+export abstract class AbstractFlowNode<ContextT = any> {
     /**
      * 节点唯一ID
      */
@@ -35,9 +35,9 @@ export abstract class AbstractFlowNode<ContextT> {
 
     /**
      * 节点构造函数
-     * @param constructorArgs
+     * @param flowNodeConfig
      */
-    constructor(constructorArgs: FlowNodeConstructorArgs<ContextT>) {
+    constructor(flowNodeConfig: FlowNodeConfig<ContextT>) {
 
         const {
             uuid,
@@ -45,7 +45,7 @@ export abstract class AbstractFlowNode<ContextT> {
             context,
             inputDataFieldDefs,
             outputDataFieldDefs
-        } = constructorArgs;
+        } = flowNodeConfig;
 
         this.uuid = uuid;
         this.desc = desc;
@@ -67,5 +67,3 @@ export abstract class AbstractFlowNode<ContextT> {
         });
     }
 }
-
-export type FlowNode = AbstractFlowNode<any>;

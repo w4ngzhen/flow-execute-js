@@ -1,10 +1,10 @@
-import {FlowNode} from "../flow-node/AbstractFlowNode";
 import {Router} from "../router";
 import {FlowNodeDataFieldDef, FlowNodeDataPack} from "../types/flow-node";
+import {AbstractFlowNode} from "../flow-node/AbstractFlowNode";
 
 export class Flow {
 
-    private readonly flowNodes: FlowNode[];
+    private readonly flowNodes: AbstractFlowNode[];
 
     private readonly routers: Router[];
 
@@ -13,7 +13,7 @@ export class Flow {
         this.routers = [];
     }
 
-    addFlowNode(flowNode: FlowNode) {
+    addFlowNode(flowNode: AbstractFlowNode) {
         this.flowNodes.push(flowNode);
     }
 
@@ -22,12 +22,12 @@ export class Flow {
     }
 
     async run(startNodeId: string,
-              startInput: FlowNodeDataPack): Promise<FlowNode[]> {
+              startInput: FlowNodeDataPack): Promise<AbstractFlowNode[]> {
         const startNode = this.flowNodes.find(node => node.uuid === startNodeId);
         if (!startNode) {
             throw new Error('Cannot find the start FlowNode: ' + startNodeId);
         }
-        const flowNodeExecutePath: FlowNode[] = [];
+        const flowNodeExecutePath: AbstractFlowNode[] = [];
         const logRecords: string[] = [];
         await this.runFlowNode(
             startNode,
@@ -38,9 +38,9 @@ export class Flow {
         return flowNodeExecutePath;
     }
 
-    async runFlowNode(flowNode: FlowNode,
+    async runFlowNode(flowNode: AbstractFlowNode,
                       inputDataPack: FlowNodeDataPack,
-                      flowNodePath: FlowNode[],
+                      flowNodePath: AbstractFlowNode[],
                       logRecords: string[]) {
 
         flowNodePath.push(flowNode);
