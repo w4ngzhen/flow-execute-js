@@ -6,6 +6,16 @@ export interface FlowNodeDataPack {
 }
 
 /**
+ * 流程节点数据字段类型
+ */
+export type FlowNodeDataFieldType =
+    'STRING'
+    | 'NUMBER'
+    | 'BOOLEAN'
+    | 'ARRAY'
+    | 'OBJECT';
+
+/**
  * 流程节点的能够接受的输入数据字段
  */
 export interface FlowNodeDataFieldDef {
@@ -18,9 +28,16 @@ export interface FlowNodeDataFieldDef {
      */
     type: 'STRING' | 'NUMBER' | 'BOOLEAN' | 'ARRAY' | 'OBJECT';
     /**
-     * 若 type = 'ARRAY' | 'OBJECT'，那么dataDef会有
+     * 如果当前类型为对象（OBJECT），
+     * 那么 objectDefs 为该对象内部的定义结构
      */
-    dataDef?: FlowNodeDataFieldDef[]
+    objectDefs?: FlowNodeDataFieldDef[];
+    /**
+     * 如果当前类型为数组（ARRAY）
+     * 那么 arrayDef 为数组每个元素的类型定义，
+     * 此时可不关注FieldDef中的name，因为没有意义
+     */
+    arrayDef?: FlowNodeDataFieldDef;
 }
 
 /**
