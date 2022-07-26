@@ -1,4 +1,4 @@
-type LoggerFunc = (msg: string, args: any) => void;
+type LoggerFunc = (msg: string, ...args: any) => void;
 
 export interface Logger {
     debug: LoggerFunc;

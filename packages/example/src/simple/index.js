@@ -3,6 +3,7 @@ const flow = new Flow({
   flowNodeExecutionAspectHandler: (flowNode, outputDataPack) => {
     console.log('[flowNodeExecutionAspectHandler] - 当前要处理的节点：', flowNode);
     console.log('[flowNodeExecutionAspectHandler] - outputDataPack：', outputDataPack);
+    return outputDataPack;
   }
 });
 const rawJsFlowNode1 = new RawJsFlowNode({
@@ -94,7 +95,8 @@ const router1 = {
   startNodeId: '1',
   targetNodeId: '2',
   condition: {
-    type: 'always'
+    type: 'expression',
+    expression: "baseUserInfo.age <= 19"
   }
 };
 
@@ -102,7 +104,16 @@ const router2 = {
   startNodeId: '2',
   targetNodeId: '3',
   condition: {
-    type: 'always'
+    type: 'script',
+    script: `
+    const userId = id;
+    console.log('这是Router Condition 中的脚本执行， userId: ', id);
+    if ('' === userId) {
+       return false;
+    } else {
+       return true;
+    }
+    `
   }
 };
 

@@ -2,9 +2,11 @@ import {Router} from "../router";
 import {FlowNodeDataFieldDef, FlowNodeDataPack, FlowNodeExecutionSnapshot} from "../types/flow-node";
 import {AbstractFlowNode} from "../flow-node/AbstractFlowNode";
 import {FlowWalker} from "./flow-walker";
+import {getFuncInvokeArgList} from "../utils/function";
+import * as _ from "lodash";
 
 /**
- * 流程节点执行映射器
+ * 流程节点执行切面处理器
  */
 type FlowNodeExecutionAspectHandler =
     (flowNode: AbstractFlowNode, flowNodeOutputDataPack: FlowNodeDataPack)
@@ -88,7 +90,7 @@ export class Flow {
                       inputDataPack: FlowNodeDataPack,
                       flowWalker: FlowWalker): Promise<void> {
 
-        console.debug('准备处理节点: ' + flowNode.toString());
+        console.debug(`\n\n\n=== 准备处理节点: ${flowNode.toString()} ===`);
 
         // 准备当前节点的输入数据集
         const currentNodeInputDataPack = Flow.pickArgsFromInputDataPack(flowNode.inputDataFieldDefs, inputDataPack);
@@ -162,7 +164,7 @@ export class Flow {
         const routers = this.findFlowNodeRouter(flowNode.uuid);
         if (routers.length === 0) {
             // 没有找到对应的路由，终止
-            // todo 可以增加日志记录
+            console.debug('路由为空，流程结束');
             return;
         }
 
@@ -179,6 +181,7 @@ export class Flow {
         if (!satisfiedRouter) {
             // 找不到满足的router，终止
             // todo 可以增加日志记录
+            console.debug('无满足路由，流程结束')
             return;
         }
         const targetNodeId = satisfiedRouter.targetNodeId;
@@ -254,22 +257,64 @@ export class Flow {
         return this.routers.filter(r => r.startNodeId === flowNodeId);
     }
 
-    private async routerConditionCalculate(router: Router, nodeOutput): Promise<boolean> {
-        const {type: routerConditionType, expression} = router.condition;
+    private async routerConditionCalculate(router: Router,
+                                           flowNodeDataPack: FlowNodeDataPack)
+        : Promise<boolean> {
+        const {
+            type: routerConditionType,
+            expression,
+            script
+        } = router.condition || {};
+
+        // 'always' 直接通过
         if (routerConditionType === 'always') {
             return true;
         }
-        if (routerConditionType === 'expression') {
-            let expressionFunc: Function;
-            if (typeof expression === 'string') {
-                expressionFunc = new Function(expression);
+
+        // 表达式/脚本都会使用统一的方式处理（使用Function对象）
+        if (['expression', 'script'].indexOf(routerConditionType) >= 0) {
+
+            const {
+                argNameList,
+                argValueList
+            } = getFuncInvokeArgList(flowNodeDataPack);
+
+            // 最终Function执行代码
+            let funcBody: string;
+            if (routerConditionType === 'expression') {
+                funcBody = _.trim(expression || '');
+                if (funcBody === '') {
+                    return false;
+                }
+                // 表达式是没有return语句的，但是我们使用的Function，所以需要添加return
+                funcBody = `return (${funcBody});`;
             } else {
-                expressionFunc = expression;
+                // routerConditionType === 'script'
+                funcBody = _.trim(script || '');
+                if (funcBody === '') {
+                    return false;
+                }
             }
-            return await expressionFunc.call(null, nodeOutput, {}, {});
+
+            // ['name', 'userInfo'] => 'name, userInfo'
+            const argNameListStr = argNameList.join(', ');
+            console.debug('RouterCondition 函数参数列表：', argNameListStr);
+            console.debug('RouterCondition 执行代码：', funcBody);
+            const func = new Function(argNameListStr, funcBody);
+            try {
+                const result = await func.apply(null, argValueList);
+                if (typeof result !== 'boolean') {
+                    console.warn('当前路由表达式计算的返回非boolean类型，将按照JavaScript的数据真值检测逻辑');
+                }
+                return !!result;
+            } catch (e) {
+                console.error('路由节点逻辑判断报错，将直接该路由为false', e);
+                return false;
+            }
         }
 
-        throw new Error('Cannot handle router condition!');
-
+        // 未知的类型，总是返回true
+        console.warn('当前路由类型未知，将直接返回true！');
+        return true;
     }
 }
