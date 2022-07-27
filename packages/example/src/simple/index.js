@@ -1,6 +1,6 @@
 const {FlowExecutor, RawJsFlowNodeExecutor, ApiFlowNodeExecutor} = require('@flow-execute/core');
 const flow = new FlowExecutor({
-  flowNodeExecutionAspectHandler: (flowNode, outputDataPack) => {
+  executionAspectHandler: (flowNode, outputDataPack) => {
     console.log('[flowNodeExecutionAspectHandler] - 当前要处理的节点：', flowNode);
     console.log('[flowNodeExecutionAspectHandler] - outputDataPack：', outputDataPack);
     return outputDataPack;

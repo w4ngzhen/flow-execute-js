@@ -1,13 +1,13 @@
 import * as _ from 'lodash';
-import {FlowNodeExecutionSnapshot} from "../../types/executor/flow-node";
+import {ExecutionSnapshot} from "../../types/executor";
 
 
 /**
- * 详细流程节点快照
+ * 详细流程执行快照
  */
-interface DetailFlowNodeSnapshotRecord {
+interface SnapshotDetailRecord {
     /**
-     * 当前记录时候，执行结束的流程节点ID
+     * 当前记录时候，执行结束的执行器ID
      */
     [currentFlowNodeId: string]: {
         /**
@@ -15,30 +15,30 @@ interface DetailFlowNodeSnapshotRecord {
          */
         snapshotLogTime: Date;
         /**
-         * 当前记录时候，整个流程节点执行链的快照记录，
+         * 当前记录时候，整个流程执行链的快照记录，
          * 假如有1、2、3流程，那么
          * 1 => [1]
          * 2 => [1, 2]
          * 3 => [1, 2, 3]
          */
-        currentFullFlowNodeSnapshots: FlowNodeExecutionSnapshot[];
+        currentFullFlowNodeSnapshots: ExecutionSnapshot[];
     };
 }
 
 /**
  * 流程Walker初始配置
  */
-interface FlowWalkerConfig {
+interface FlowNodeExecutionWalkerConfig {
     snapshotDetailRecordEnable: boolean;
 }
 
 /**
  * 流程Walker
- * 按照每一个节点的执行过程，逐节点进行状态记录，
+ * 按照每一个执行器的执行过程，逐节点进行状态记录，
  * 方便后续进行调试等
  */
-export class FlowWalker {
-    get flowSnapshotRecords(): FlowNodeExecutionSnapshot[] {
+export class ExecutionWalker {
+    get flowSnapshotRecords(): ExecutionSnapshot[] {
         return _.cloneDeep(this._flowSnapshotRecords);
     }
 
@@ -46,7 +46,7 @@ export class FlowWalker {
      * Flow每执行一次会记录一次快照
      * @private
      */
-    private readonly _flowSnapshotRecords: FlowNodeExecutionSnapshot[];
+    private readonly _flowSnapshotRecords: ExecutionSnapshot[];
     /**
      * 是否启用详细的快照记录
      * 这个功能只会在开发debug时候启动
@@ -54,13 +54,13 @@ export class FlowWalker {
      */
     private readonly _snapshotDetailRecordEnable: boolean;
     /**
-     * 详细快照记录，会记录每一个节点执行的当前情况
+     * 详细快照记录，会记录每一个执行器的执行当前情况
      * @private
      */
-    private readonly _flowNodeSnapshotDetailRecord: DetailFlowNodeSnapshotRecord;
+    private readonly _flowNodeSnapshotDetailRecord: SnapshotDetailRecord;
 
 
-    constructor(config: FlowWalkerConfig) {
+    constructor(config: FlowNodeExecutionWalkerConfig) {
         const {snapshotDetailRecordEnable} = config || {};
         this._flowSnapshotRecords = [];
         this._snapshotDetailRecordEnable = snapshotDetailRecordEnable;
@@ -70,12 +70,12 @@ export class FlowWalker {
         }
     }
 
-    record(snapshot: FlowNodeExecutionSnapshot) {
+    record(snapshot: ExecutionSnapshot) {
         this._flowSnapshotRecords.push(snapshot);
-        const {flowNodeSchema} = snapshot;
-        const {uuid} = flowNodeSchema;
+        const {baseSchema} = snapshot;
+        const {schemaId} = baseSchema;
         if (this._snapshotDetailRecordEnable) {
-            this._flowNodeSnapshotDetailRecord[uuid] = {
+            this._flowNodeSnapshotDetailRecord[schemaId] = {
                 snapshotLogTime: new Date(),
                 currentFullFlowNodeSnapshots: _.cloneDeep(this._flowSnapshotRecords)
             }

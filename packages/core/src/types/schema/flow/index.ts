@@ -1,19 +1,16 @@
 import {FlowNodeDataFieldDef, FlowNodeSchema} from "../flow-node/flow-node-schema";
 import {RouterSchema} from "../router";
+import {BaseSchema} from "../../index";
 
-export interface FlowSchema {
+export interface FlowSchema extends BaseSchema {
     /**
-     * 流程ID
+     * 该流程具备的流程
      */
-    flowId: string;
-    /**
-     * 流程名称
-     */
-    flowName: string;
+    flowSchemas: FlowSchema[];
     /**
      * 流程具备的节点Schema
      */
-    flowNodeSchemas: FlowNodeSchema<any>[];
+    flowNodeSchemas: FlowNodeSchema[];
     /**
      * 该流程中的路由
      */
@@ -21,14 +18,14 @@ export interface FlowSchema {
     /**
      * 启动的节点ID
      */
-    startFlowNodeId: string;
+    startId: string;
     /**
-     * 节点的输入定义
+     * 流程的输入定义
      */
     inputDataFieldDefs?: FlowNodeDataFieldDef[];
 
     /**
-     * 节点的输出定义
+     * 流程的输出定义
      */
     outputDataFieldDefs?: FlowNodeDataFieldDef[];
 }

@@ -1,7 +1,9 @@
 import {FlowSchema} from "../../schema/flow";
-import {FlowNodeExecutionAspectHandler} from "../flow-node";
+import {ExecutionAspectHandler} from "../flow-node";
+import {ExecutionWalker} from "../../../executor/flow/ExecutionWalker";
 
-export interface FlowExecutorConfig extends FlowSchema {
-    snapshotDetailRecordEnable: boolean;
-    flowNodeExecutionAspectHandler: FlowNodeExecutionAspectHandler;
+export interface FlowExecutorConfig {
+    flowSchema: FlowSchema;
+    flowNodeExecutionWalker: ExecutionWalker;
+    executionAspectHandler?: ExecutionAspectHandler;
 }

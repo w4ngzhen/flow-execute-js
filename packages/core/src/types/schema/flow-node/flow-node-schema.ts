@@ -1,3 +1,5 @@
+import {BaseSchema} from "../../index";
+
 /**
  * 流程节点的能够接受的输入数据字段
  */
@@ -23,10 +25,10 @@ export interface FlowNodeDataFieldDef {
     arrayDef?: FlowNodeDataFieldDef;
 }
 
-export interface FlowNodeSchema<ContextT> {
-    uuid: string;
+export interface FlowNodeSchema<ContextT = any> extends BaseSchema {
+
     type: string;
-    desc: string;
+
     context: ContextT;
     /**
      * 节点的输入定义

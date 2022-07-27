@@ -4,7 +4,7 @@
 export interface RouterCondition {
     /**
      * always：总是进入下一个节点
-     * expression：经过表达式进行计算后进入下一个节点
+     * expression：经过表达式进行计算后进入下一个执行器
      */
     type: 'always' | 'expression' | 'script';
     /**
@@ -23,21 +23,23 @@ export interface RouterCondition {
 
 /**
  * 路由
- * 两个流程节点的连接路径
+ * 两个执行器节点的连接路径
  */
 export interface RouterSchema {
     /**
      * 路由唯一ID
      */
-    uuid: string;
+    id: string;
     /**
-     * 开始节点ID
+     * 开始执行器ID，
+     * 这里的节点是指可执行节点，Flow、FlowNode都是可以被执行的节点
      */
-    startNodeId: string;
+    startId: string;
     /**
-     * 目标节点ID
+     * 目标执行ID
+     * 这里的节点是指可执行节点，Flow、FlowNode都是可以被执行的节点
      */
-    targetNodeId: string;
+    targetId: string;
     /**
      * 条件配置，根据条件计算得到true/false来决定是否使用该条路由
      */

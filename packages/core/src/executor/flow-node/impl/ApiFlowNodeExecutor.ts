@@ -1,16 +1,16 @@
-import {AbstractFlowNodeExecutor} from "../AbstractFlowNodeExecutor";
+import {FlowNodeExecutor} from "../FlowNodeExecutor";
 import axios, {AxiosResponse} from 'axios';
 import * as Qs from 'qs';
 import {ApiFlowNodeContext} from "../../../types/schema/flow-node/api-flow-node-schema";
 import {ExecutionDataPack} from "../../../types/executor";
 
-export class ApiFlowNodeExecutor extends AbstractFlowNodeExecutor<ApiFlowNodeContext> {
+export class ApiFlowNodeExecutor extends FlowNodeExecutor<ApiFlowNodeContext> {
 
     get flowNodeType(): string {
         return "ApiFlowNodeExecutor";
     }
 
-    async execute(inputDataPack: ExecutionDataPack, globalContext: any): Promise<any> {
+    async executeImpl(inputDataPack: ExecutionDataPack, globalContext: any): Promise<any> {
 
         const {
             url,
