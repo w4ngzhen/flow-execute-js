@@ -5,7 +5,7 @@ import {ExecutionSnapshot} from "../../types/executor";
 /**
  * 详细流程执行快照
  */
-interface SnapshotDetailRecord {
+interface ExecutionSnapshotDetailRecord {
     /**
      * 当前记录时候，执行结束的执行器ID
      */
@@ -26,9 +26,9 @@ interface SnapshotDetailRecord {
 }
 
 /**
- * 流程Walker初始配置
+ * 流程执行Walker初始配置
  */
-interface FlowNodeExecutionWalkerConfig {
+interface ExecutionWalkerConfig {
     snapshotDetailRecordEnable: boolean;
 }
 
@@ -57,14 +57,14 @@ export class ExecutionWalker {
      * 详细快照记录，会记录每一个执行器的执行当前情况
      * @private
      */
-    private readonly _flowNodeSnapshotDetailRecord: SnapshotDetailRecord;
+    private readonly _executionSnapshotDetailRecord: ExecutionSnapshotDetailRecord;
 
 
-    constructor(config: FlowNodeExecutionWalkerConfig) {
+    constructor(config: ExecutionWalkerConfig) {
         const {snapshotDetailRecordEnable} = config || {};
         this._flowSnapshotRecords = [];
         this._snapshotDetailRecordEnable = snapshotDetailRecordEnable;
-        this._flowNodeSnapshotDetailRecord = {};
+        this._executionSnapshotDetailRecord = {};
         if (this._snapshotDetailRecordEnable) {
             console.warn('【警告】当前FlowWalker启用了详细记录（_snapshotDetailRecordEnable），在流程节点数据较多时可能引发性能问题')
         }
@@ -75,7 +75,7 @@ export class ExecutionWalker {
         const {baseSchema} = snapshot;
         const {schemaId} = baseSchema;
         if (this._snapshotDetailRecordEnable) {
-            this._flowNodeSnapshotDetailRecord[schemaId] = {
+            this._executionSnapshotDetailRecord[schemaId] = {
                 snapshotLogTime: new Date(),
                 currentFullFlowNodeSnapshots: _.cloneDeep(this._flowSnapshotRecords)
             }
