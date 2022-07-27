@@ -1,8 +1,6 @@
 import {FlowNodeSchema} from "../../types/schema/flow-node/flow-node-schema";
 import {ExecutionDataPack} from "../../types/executor";
-import {RawJsFlowNodeExecutor} from "./impl/RawJsFlowNodeExecutor";
-import {ApiFlowNodeExecutor} from "./impl/ApiFlowNodeExecutor";
-import {Executor} from "../index";
+import {Executor} from "../Executor";
 import {buildDataPackByFieldDef} from "../../utils/data-pack";
 
 export abstract class FlowNodeExecutor<ContextT = any> extends Executor {
@@ -10,7 +8,16 @@ export abstract class FlowNodeExecutor<ContextT = any> extends Executor {
     readonly _flowNodeSchema: FlowNodeSchema<ContextT>;
 
     get executorBaseSchema() {
-        return this._flowNodeSchema;
+        const {
+            schemaId,
+            schemaName,
+            schemaDesc
+        } = this._flowNodeSchema;
+        return {
+            schemaId,
+            schemaName,
+            schemaDesc
+        };
     }
 
     /**
@@ -82,20 +89,4 @@ export abstract class FlowNodeExecutor<ContextT = any> extends Executor {
 }
 
 
-/**
- * 流程节点执行器的构造函数
- */
-const flowNodeExecutorConstructor = {
-    'RawJsFlowNode': RawJsFlowNodeExecutor,
-    'ApiFlowNode': ApiFlowNodeExecutor
-}
 
-/**
- * 构建FlowNodeExecutor
- * @param flowNodeSchema
- */
-export const buildFlowNodeExecutor = (flowNodeSchema: FlowNodeSchema) => {
-    const {type} = flowNodeSchema;
-    const executorConstructor = flowNodeExecutorConstructor[type];
-    return new executorConstructor(flowNodeSchema) as FlowNodeExecutor;
-}

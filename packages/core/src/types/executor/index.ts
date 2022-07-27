@@ -1,4 +1,3 @@
-import {FlowNodeSchema} from "../schema/flow-node/flow-node-schema";
 import {BaseSchema} from "../index";
 
 /**

@@ -1,6 +1,6 @@
-import {RouterSchema} from "../../types/schema/router";
-import {ExecutionDataPack} from "../../types/executor";
-import {getFuncInvokeArgList} from "../../utils/function";
+import {RouterSchema} from "../types/schema/router";
+import {ExecutionDataPack} from "../types/executor";
+import {getFuncInvokeArgList} from "../utils/function";
 import * as _ from "lodash";
 
 export const routerConditionCalculate = async (router: RouterSchema,

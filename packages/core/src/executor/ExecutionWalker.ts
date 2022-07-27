@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import {ExecutionSnapshot} from "../../types/executor";
+import {ExecutionSnapshot} from "../types/executor";
 
 
 /**
@@ -38,15 +38,15 @@ interface ExecutionWalkerConfig {
  * 方便后续进行调试等
  */
 export class ExecutionWalker {
-    get flowSnapshotRecords(): ExecutionSnapshot[] {
-        return _.cloneDeep(this._flowSnapshotRecords);
+    get executionSnapshotRecords(): ExecutionSnapshot[] {
+        return _.cloneDeep(this._executionSnapshotRecords);
     }
 
     /**
      * Flow每执行一次会记录一次快照
      * @private
      */
-    private readonly _flowSnapshotRecords: ExecutionSnapshot[];
+    private readonly _executionSnapshotRecords: ExecutionSnapshot[];
     /**
      * 是否启用详细的快照记录
      * 这个功能只会在开发debug时候启动
@@ -62,7 +62,7 @@ export class ExecutionWalker {
 
     constructor(config: ExecutionWalkerConfig) {
         const {snapshotDetailRecordEnable} = config || {};
-        this._flowSnapshotRecords = [];
+        this._executionSnapshotRecords = [];
         this._snapshotDetailRecordEnable = snapshotDetailRecordEnable;
         this._executionSnapshotDetailRecord = {};
         if (this._snapshotDetailRecordEnable) {
@@ -71,13 +71,13 @@ export class ExecutionWalker {
     }
 
     record(snapshot: ExecutionSnapshot) {
-        this._flowSnapshotRecords.push(snapshot);
+        this._executionSnapshotRecords.push(snapshot);
         const {baseSchema} = snapshot;
         const {schemaId} = baseSchema;
         if (this._snapshotDetailRecordEnable) {
             this._executionSnapshotDetailRecord[schemaId] = {
                 snapshotLogTime: new Date(),
-                currentFullFlowNodeSnapshots: _.cloneDeep(this._flowSnapshotRecords)
+                currentFullFlowNodeSnapshots: _.cloneDeep(this._executionSnapshotRecords)
             }
         }
     }

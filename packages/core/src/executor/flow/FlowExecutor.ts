@@ -1,11 +1,11 @@
-import {buildFlowNodeExecutor, FlowNodeExecutor} from "../flow-node/FlowNodeExecutor";
+import {FlowNodeExecutor} from "../flow-node/FlowNodeExecutor";
 import * as _ from "lodash";
 import {RouterSchema} from "../../types/schema/router";
 import {FlowExecutorConfig} from "../../types/executor/flow";
 import {ExecutionDataPack, ExecutionSnapshot} from "../../types/executor";
 import {filterDataPackByFieldDef} from "../../utils/data-pack";
-import {routerConditionCalculate} from "../router";
-import {Executor} from "../index";
+import {routerConditionCalculate} from "../../router";
+import {Executor} from "../Executor";
 import {BaseSchema} from "../../types";
 
 export class FlowExecutor extends Executor {
@@ -17,7 +17,16 @@ export class FlowExecutor extends Executor {
     private readonly _flowExecutorConfig: FlowExecutorConfig;
 
     get executorBaseSchema(): BaseSchema {
-        return this._flowExecutorConfig.flowSchema;
+        const {
+            schemaId,
+            schemaName,
+            schemaDesc
+        } = this._flowExecutorConfig.flowSchema;
+        return {
+            schemaId,
+            schemaName,
+            schemaDesc
+        };
     }
 
     /**
@@ -89,14 +98,15 @@ export class FlowExecutor extends Executor {
             return new FlowExecutor({
                 flowSchema,
                 // 对于子流程来说，除了flowSchema外，
-                // 其他的配置都是根流程透穿
+                // 其他的配置都是根流程透传
                 ...restConfig
             });
         });
 
         // 构建当前流程中所有流程节点执行器
         this.flowNodeExecutors = (flowNodeSchemas || []).map(flowNodeSchema => {
-            return buildFlowNodeExecutor(flowNodeSchema);
+            console.debug('构建流程节点执行器');
+            return this._flowExecutorConfig.flowNodeSupplier.getFlowNodeExecutor(flowNodeSchema);
         });
 
         // 防止引用修改，使用深拷贝
@@ -138,7 +148,7 @@ export class FlowExecutor extends Executor {
     private async innerExecute(executor: Executor,
                                inputDataPack: ExecutionDataPack): Promise<ExecutionDataPack | undefined> {
 
-        console.debug(`\n\n\n=== 准备调用执行器: ${executor.id} ===`);
+        console.debug(`\n\n\n=== 准备调用执行器, id = '${executor.id}' ===`);
 
         // 准备当前执行器的输入数据包
         const currentExecutorInputDataPack = filterDataPackByFieldDef(
@@ -155,7 +165,7 @@ export class FlowExecutor extends Executor {
         };
 
         // 切面封装
-        const aspectHandle = async (originalOutputDataPack: ExecutionDataPack): Promise<ExecutionDataPack> => {
+        const aspectHandle = async (flowNodeBaseSchema: BaseSchema, originalOutputDataPack: ExecutionDataPack): Promise<ExecutionDataPack> => {
             if (!this.executionAspectHandler
                 || typeof this.executionAspectHandler !== 'function') {
                 return originalOutputDataPack;
@@ -163,7 +173,7 @@ export class FlowExecutor extends Executor {
             // 如配置了切面handler，那么使用handler进行数据处理
             try {
                 const handledOutputData =
-                    await this.executionAspectHandler(this.executorBaseSchema, originalOutputDataPack);
+                    await this.executionAspectHandler(flowNodeBaseSchema, originalOutputDataPack);
                 if (typeof originalOutputDataPack !== 'undefined'
                     && typeof handledOutputData === 'undefined') {
                     console.warn('你可能在flowNodeExecutionAspectHandler忘记了返回数据？')
@@ -186,7 +196,8 @@ export class FlowExecutor extends Executor {
             const currExecutionOutputDataPack = await executor.execute(currentExecutorInputDataPack, {});
 
             // snapshot信息保存
-            currentExecutionSnapshot.outputDataPack = await aspectHandle(currExecutionOutputDataPack);
+            currentExecutionSnapshot.outputDataPack =
+                await aspectHandle(executor.executorBaseSchema, currExecutionOutputDataPack);
             currentExecutionSnapshot.finishTime = new Date();
 
             // 记录snapshot信息

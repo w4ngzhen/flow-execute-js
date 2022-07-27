@@ -1,6 +1,6 @@
-const {FlowExecutor} = require('@flow-execute/core');
+const {ExecutionManager} = require('@flow-execute/core');
 
-const schema = {
+const flowSchema = {
   schemaId: '1',
   schemaName: '项目Schema',
   schemaDesc: '项目Schema',
@@ -11,6 +11,7 @@ const schema = {
       schemaId: '111',
       schemaName: 'getUserInfo',
       schemaDesc: '根据initData得到基本的用户信息',
+      flowNodeType: "RawJsFlowNode",
 
       context: {
         jsCode: `
@@ -37,6 +38,7 @@ const schema = {
       schemaId: '222',
       schemaName: 'printUserInfoAndCalcId',
       schemaDesc: '打印用户信息，并计算一个id',
+      flowNodeType: "RawJsFlowNode",
 
       context: {
         jsCode: `
@@ -62,6 +64,8 @@ const schema = {
       schemaId: '333',
       schemaName: 'getUserInfoByIdFromServer',
       schemaDesc: '根据ID获取服务端用户信息',
+      flowNodeType: "ApiFlowNode",
+
       context: {
         url: 'http://localhost:3000/getUserInfoById',
         method: 'GET'
@@ -83,6 +87,7 @@ const schema = {
       schemaId: '444',
       schemaName: 'printUserInfoFromServer',
       schemaDesc: '打印服务端用户信息',
+      flowNodeType: "RawJsFlowNode",
 
       context: {
         jsCode: `
@@ -102,8 +107,8 @@ const schema = {
       schemaId: 'r1',
       schemaName: '',
       schemaDesc: '',
-      startId: '1',
-      targetId: '2',
+      startId: '111',
+      targetId: '222',
       condition: {
         type: 'expression',
         expression: "baseUserInfo.age <= 19"
@@ -113,8 +118,8 @@ const schema = {
       schemaId: 'r2',
       schemaName: '',
       schemaDesc: '',
-      startId: '2',
-      targetId: '3',
+      startId: '222',
+      targetId: '333',
       condition: {
         type: 'script',
         script: `
@@ -132,8 +137,8 @@ const schema = {
       schemaId: 'r2',
       schemaName: '',
       schemaDesc: '',
-      startId: '3',
-      targetId: '4',
+      startId: '333',
+      targetId: '444',
       condition: {
         type: 'always'
       }
@@ -143,15 +148,15 @@ const schema = {
 };
 
 async function run() {
-  const flow = new FlowExecutor({
-    flowSchema: schema,
-    executionAspectHandler: (flowNode, outputDataPack) => {
-      console.log('[flowNodeExecutionAspectHandler] - 当前要处理的节点：', flowNode);
-      console.log('[flowNodeExecutionAspectHandler] - outputDataPack：', outputDataPack);
-      return outputDataPack;
-    }
-  });
-  const outputDataPack = await flow.execute({initData: {name: 'wz'}});
+
+  const executionManager = new ExecutionManager();
+  executionManager.executionAspectHandler = (flowNode, outputDataPack) => {
+    console.log('[切面处理器] - 当前要处理的节点：', flowNode);
+    console.log('[切面处理器] - outputDataPack：', outputDataPack);
+    return outputDataPack;
+  };
+  const flowExecutor = executionManager.newFlowExecutor(flowSchema);
+  const outputDataPack = await flowExecutor.execute({initData: {name: 'wz'}});
   console.log('outputDataPack：\n', outputDataPack);
 }
 

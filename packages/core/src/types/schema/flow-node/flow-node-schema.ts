@@ -27,7 +27,7 @@ export interface FlowNodeDataFieldDef {
 
 export interface FlowNodeSchema<ContextT = any> extends BaseSchema {
 
-    type: string;
+    flowNodeType: string;
 
     context: ContextT;
     /**
