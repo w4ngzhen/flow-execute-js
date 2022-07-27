@@ -1,6 +1,8 @@
 /**
  * 路由条件
  */
+import {BaseSchema} from "../../index";
+
 export interface RouterCondition {
     /**
      * always：总是进入下一个节点
@@ -25,11 +27,7 @@ export interface RouterCondition {
  * 路由
  * 两个执行器节点的连接路径
  */
-export interface RouterSchema {
-    /**
-     * 路由唯一ID
-     */
-    id: string;
+export interface RouterSchema extends BaseSchema {
     /**
      * 开始执行器ID，
      * 这里的节点是指可执行节点，Flow、FlowNode都是可以被执行的节点
