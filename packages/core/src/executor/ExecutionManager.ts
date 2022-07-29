@@ -35,7 +35,7 @@ export class ExecutionManager {
         return new FlowExecutor({
             flowSchema,
             flowNodeSupplier: this._flowNodeExecutorSupplier,
-            flowNodeExecutionWalker: new ExecutionWalker({
+            executionWalker: new ExecutionWalker({
                 snapshotDetailRecordEnable: this._snapshotDetailRecordEnable
             }),
             executionAspectHandler: this._executionAspectHandler

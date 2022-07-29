@@ -1,4 +1,4 @@
-import {BaseSchema} from "../index";
+import {BaseSchema} from "../schema";
 
 /**
  * 运转执行数据包

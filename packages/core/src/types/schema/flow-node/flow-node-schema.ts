@@ -1,4 +1,4 @@
-import {BaseSchema} from "../../index";
+import {BaseSchema} from "../index";
 
 /**
  * 流程节点的能够接受的输入数据字段

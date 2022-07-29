@@ -1,6 +1,6 @@
 import {FlowNodeDataFieldDef, FlowNodeSchema} from "../flow-node/flow-node-schema";
 import {RouterSchema} from "../router";
-import {BaseSchema} from "../../index";
+import {BaseSchema} from "../index";
 
 export interface FlowSchema extends BaseSchema {
     /**

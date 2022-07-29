@@ -1,5 +1,5 @@
 import {ExecutionDataPack} from "../index";
-import {BaseSchema} from "../../index";
+import {BaseSchema} from "../../schema";
 import {FlowNodeExecutor} from "../../../executor/flow-node/FlowNodeExecutor";
 
 /**

@@ -1,9 +1,12 @@
 import {ExecutionDataPack} from "../types/executor";
 import {FlowNodeDataFieldDef} from "../types/schema/flow-node/flow-node-schema";
-import {BaseSchema} from "../types";
+import {BaseSchema} from "../types/schema";
 
 export abstract class Executor {
 
+    /**
+     * 执行的基础Schema配置
+     */
     abstract get executorBaseSchema(): BaseSchema;
 
     /**
@@ -27,8 +30,14 @@ export abstract class Executor {
         return `【执行器】${this.executorBaseSchema.schemaDesc}`;
     }
 
+    /**
+     * 执行器的输入定义
+     */
     abstract get inputDataFieldDefs(): FlowNodeDataFieldDef[];
 
+    /**
+     * 执行器的输出定义
+     */
     abstract get outputDataFieldDefs(): FlowNodeDataFieldDef[];
 
     abstract execute(inputDataPack: ExecutionDataPack, ...args: any): Promise<ExecutionDataPack>;

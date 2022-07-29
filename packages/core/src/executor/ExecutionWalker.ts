@@ -33,9 +33,8 @@ interface ExecutionWalkerConfig {
 }
 
 /**
- * 流程Walker
- * 按照每一个执行器的执行过程，逐节点进行状态记录，
- * 方便后续进行调试等
+ * 流程漫步者
+ * 按照每一个执行器（Executor）的执行前后都会记录一定的信息
  */
 export class ExecutionWalker {
     get executionSnapshotRecords(): ExecutionSnapshot[] {
@@ -66,7 +65,7 @@ export class ExecutionWalker {
         this._snapshotDetailRecordEnable = snapshotDetailRecordEnable;
         this._executionSnapshotDetailRecord = {};
         if (this._snapshotDetailRecordEnable) {
-            console.warn('【警告】当前FlowWalker启用了详细记录（_snapshotDetailRecordEnable），在流程节点数据较多时可能引发性能问题')
+            console.warn('【警告】当前 ExecutionWalker 启用了详细记录（_snapshotDetailRecordEnable），在流程节点数据较多时可能引发性能问题')
         }
     }
 

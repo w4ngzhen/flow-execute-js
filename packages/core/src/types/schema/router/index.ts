@@ -1,7 +1,7 @@
 /**
  * 路由条件
  */
-import {BaseSchema} from "../../index";
+import {BaseSchema} from "../index";
 
 export interface RouterCondition {
     /**

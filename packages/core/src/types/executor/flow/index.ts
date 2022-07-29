@@ -6,6 +6,6 @@ import {FlowNodeExecutorSupplier} from "../../../executor/flow-node/FlowNodeExec
 export interface FlowExecutorConfig {
     flowSchema: FlowSchema;
     flowNodeSupplier: FlowNodeExecutorSupplier;
-    flowNodeExecutionWalker: ExecutionWalker;
+    executionWalker: ExecutionWalker;
     executionAspectHandler?: ExecutionAspectHandler;
 }

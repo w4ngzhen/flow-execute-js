@@ -6,7 +6,7 @@ import {ExecutionDataPack, ExecutionSnapshot} from "../../types/executor";
 import {filterDataPackByFieldDef} from "../../utils/data-pack";
 import {routerConditionCalculate} from "../../router";
 import {Executor} from "../Executor";
-import {BaseSchema} from "../../types";
+import {BaseSchema} from "../../types/schema";
 
 export class FlowExecutor extends Executor {
 
@@ -72,10 +72,10 @@ export class FlowExecutor extends Executor {
     }
 
     /**
-     *
+     * 执行漫步者
      */
-    get flowNodeExecutionWalker() {
-        return this._flowExecutorConfig.flowNodeExecutionWalker;
+    get executionWalker() {
+        return this._flowExecutorConfig.executionWalker;
     }
 
     constructor(config?: FlowExecutorConfig) {
@@ -94,6 +94,7 @@ export class FlowExecutor extends Executor {
             routerSchemas,
         } = flowSchema;
 
+        // 构建当前流程中的所有的流程执行器
         this.flowExecutors = (flowSchemas || []).map(flowSchema => {
             return new FlowExecutor({
                 flowSchema,
@@ -136,6 +137,7 @@ export class FlowExecutor extends Executor {
             console.error('流程执行异常终止');
             return {};
         }
+
         return result;
     }
 
@@ -201,7 +203,7 @@ export class FlowExecutor extends Executor {
             currentExecutionSnapshot.finishTime = new Date();
 
             // 记录snapshot信息
-            this.flowNodeExecutionWalker.record(currentExecutionSnapshot);
+            this.executionWalker.record(currentExecutionSnapshot);
 
             console.debug(`执行器 ${executor.id} 执行完成`)
             console.debug(`执行结果数据包（outputDataPack）：`, currExecutionOutputDataPack);
@@ -216,7 +218,7 @@ export class FlowExecutor extends Executor {
             currentExecutionSnapshot.isExecutionError = true;
             currentExecutionSnapshot.error = e;
 
-            this.flowNodeExecutionWalker.record(currentExecutionSnapshot);
+            this.executionWalker.record(currentExecutionSnapshot);
             return;
         }
 
