@@ -116,15 +116,8 @@ export class FlowExecutor extends Executor {
 
     async execute(inputDataPack: ExecutionDataPack)
         : Promise<ExecutionDataPack> {
-        let executor: Executor;
-        const startNodeExecutor =
-            this.nodeExecutors.find(node => node.id === this.startId);
-        if (startNodeExecutor) {
-            executor = startNodeExecutor;
-        } else {
-            executor = this.flowExecutors.find(flowExecutor => flowExecutor.id === this.startId);
-        }
 
+        const executor: Executor = this.getExecutor(this.startId);
         if (!executor) {
             throw new Error('找不到启动执行器：' + this.startId);
         }
@@ -254,17 +247,13 @@ export class FlowExecutor extends Executor {
         const targetId = satisfiedRouter.targetId;
 
         // 根据targetId依然要从流程执行器和流程节点执行器中查找
-
-
-        const targetNodeExecutor = this.nodeExecutors.find(fnExecutor => fnExecutor.id === targetId);
-        if (!targetNodeExecutor) {
-            // 找不到目标node，中止
-            // todo 可以增加日志记录
-            return;
+        const targetExecutor: Executor = this.getExecutor(targetId);
+        if (!executor) {
+            throw new Error('找不到执行器：' + this.startId);
         }
 
         // 递归（目标执行器以及当前执行器的输出，作为递归的输入）
-        return await this.innerExecute(targetNodeExecutor, currentExecutionSnapshot.outputDataPack);
+        return await this.innerExecute(targetExecutor, currentExecutionSnapshot.outputDataPack);
     }
 
 
