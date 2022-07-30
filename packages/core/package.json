@@ -5,7 +5,7 @@
   "main": "dist/flow-execute-core.js",
   "types": "src/index.ts",
   "scripts": {
-    "build:core": "webpack --config webpack.config.js --mode development"
+    "build:core": "webpack --config webpack.config.js --mode development --watch"
   },
   "author": "",
   "license": "ISC",

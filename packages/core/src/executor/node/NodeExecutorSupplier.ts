@@ -17,13 +17,14 @@ export class NodeExecutorSupplier {
         };
     }
 
-    getNodeExecutor(nodeType: string): NodeExecutor {
-        const executorConstructor = this.nodeExecutorConstructors[nodeType];
-        if (!executorConstructor) {
+    getNodeExecutor(nodeSchema: NodeSchema): NodeExecutor {
+        const {nodeType} = nodeSchema;
+        const nodeExecutorConstructor = this.nodeExecutorConstructors[nodeType];
+        if (!nodeExecutorConstructor) {
             console.error(`流程节点执行器列表中无法找到类型为 ${nodeType} 的流程节点执行器构造函数`);
             return undefined;
         }
-        return new executorConstructor(nodeType);
+        return new nodeExecutorConstructor(nodeSchema);
     }
 
     registerNodeExecutor(

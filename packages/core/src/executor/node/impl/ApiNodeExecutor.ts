@@ -4,6 +4,15 @@ import * as Qs from 'qs';
 import {ApiNodeContext} from "../../../types/schema/node/api-node-schema";
 import {ExecutionDataPack} from "../../../types/executor";
 
+interface HttpResponse {
+    status: number,
+    statusText: string,
+    data?: any,
+    headers?: {
+        [headerName: string]: any
+    }
+}
+
 export class ApiNodeExecutor extends NodeExecutor<ApiNodeContext> {
 
     async executeImpl(inputDataPack: ExecutionDataPack, globalContext: any): Promise<any> {
@@ -43,36 +52,42 @@ export class ApiNodeExecutor extends NodeExecutor<ApiNodeContext> {
             params[paramField] = inputDataPack[paramField];
         });
 
-        // 构造
+        // 构造axios实例
         const axiosInstance = axios.create({
             timeout
         });
 
-        const originalAxiosResp: AxiosResponse = await axiosInstance.request({
-            url,
-            method,
-            headers,
-            params,
-            data
-        });
-
-        const originalResp = {
-            status: originalAxiosResp.status,
-            statusText: originalAxiosResp.statusText,
-            data: originalAxiosResp.data,
-            headers: {
-                ...originalAxiosResp.headers
+        let httpResponse: HttpResponse;
+        try {
+            const originalAxiosResp: AxiosResponse =
+                await axiosInstance.request({
+                    url,
+                    method,
+                    headers,
+                    params,
+                    data
+                });
+            httpResponse = {
+                status: originalAxiosResp.status,
+                statusText: originalAxiosResp.statusText,
+                data: originalAxiosResp.data,
+                headers: {
+                    ...originalAxiosResp.headers
+                }
+            }
+        } catch (e) {
+            httpResponse = {
+                status: -99,
+                statusText: e.message,
             }
         }
 
         if (!responseAdapter) {
-            return originalResp;
+            return httpResponse;
         }
 
-        const respAdapterFunc: Function = typeof responseAdapter === 'string'
-            ? new Function('originalResponse', responseAdapter)
-            : responseAdapter;
-        return respAdapterFunc.apply(null, [originalResp])
+        const respAdapterFunc = new Function('httpResponse', responseAdapter)
+        return respAdapterFunc.apply(null, [httpResponse])
     }
 
 }

@@ -43,3 +43,10 @@ export interface ExecutionSnapshot {
 
     // todo 后续可以有更多的记录
 }
+
+/**
+ * 流程节点执行切面处理器
+ */
+export type ExecutionAspectHandler =
+    (baseSchema: BaseSchema, outputDataPack: ExecutionDataPack)
+        => Promise<{ outputDataPack: ExecutionDataPack }>

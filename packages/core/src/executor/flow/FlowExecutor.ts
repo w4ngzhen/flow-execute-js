@@ -106,8 +106,8 @@ export class FlowExecutor extends Executor {
 
         // 构建当前流程中所有流程节点执行器
         this.nodeExecutors = (nodeSchemas || []).map(nodeSchema => {
-            console.debug('构建流程节点执行器');
-            return this._flowExecutorConfig.nodeExecutorSupplier.getNodeExecutor(nodeSchema.nodeType);
+            console.debug(`构建流程节点执行器  id = ${nodeSchema.schemaId}, desc = ${nodeSchema.schemaDesc}`);
+            return this._flowExecutorConfig.nodeExecutorSupplier.getNodeExecutor(nodeSchema);
         });
 
         // 防止引用修改，使用深拷贝
@@ -218,6 +218,7 @@ export class FlowExecutor extends Executor {
             return;
         }
 
+        console.debug('\n准备获取路由Router')
         // 获取以当前执行器作为起始执行器的所有router
         const routers = this.routerSchemas.filter(
             router => router.startId === executor.id
@@ -244,12 +245,13 @@ export class FlowExecutor extends Executor {
             console.debug('无满足路由，流程结束')
             return;
         }
+        console.debug(`获取Router，router id = ${satisfiedRouter.schemaId}`, satisfiedRouter);
         const targetId = satisfiedRouter.targetId;
 
         // 根据targetId依然要从流程执行器和流程节点执行器中查找
         const targetExecutor: Executor = this.getExecutor(targetId);
-        if (!executor) {
-            throw new Error('找不到执行器：' + this.startId);
+        if (!targetExecutor) {
+            throw new Error('找不到执行器：' + targetId);
         }
 
         // 递归（目标执行器以及当前执行器的输出，作为递归的输入）
@@ -264,11 +266,11 @@ export class FlowExecutor extends Executor {
      */
     private getExecutor(executorId: string): FlowExecutor | NodeExecutor {
         const startNodeExecutor =
-            this.nodeExecutors.find(nodeExecutor => nodeExecutor.id === this.startId);
+            this.nodeExecutors.find(nodeExecutor => nodeExecutor.id === executorId);
         if (startNodeExecutor) {
             return startNodeExecutor;
         } else {
-            return this.flowExecutors.find(flowExecutor => flowExecutor.id === this.startId);
+            return this.flowExecutors.find(flowExecutor => flowExecutor.id === executorId);
         }
     }
 }

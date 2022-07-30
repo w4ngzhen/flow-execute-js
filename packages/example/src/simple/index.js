@@ -155,7 +155,7 @@ async function run() {
     console.log('[切面处理器] - outputDataPack：', outputDataPack);
     return outputDataPack;
   };
-  const flowExecutor = executionManager.newFlowExecutor(flowSchema);
+  const flowExecutor = executionManager.buildFlowExecutor(flowSchema);
   const outputDataPack = await flowExecutor.execute({initData: {name: 'wz'}});
   console.log('outputDataPack：\n', outputDataPack);
 }

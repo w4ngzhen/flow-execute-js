@@ -1,8 +1,9 @@
 import {NodeExecutorSupplier} from "./node/NodeExecutorSupplier";
-import {ExecutionAspectHandler, NodeExecutorConstructor} from "../types/executor/node";
+import {NodeExecutorConstructor} from "../types/executor/node";
 import {FlowExecutor} from "./flow/FlowExecutor";
 import {FlowSchema} from "../types/schema/flow";
 import {ExecutionWalker} from "./ExecutionWalker";
+import {ExecutionAspectHandler} from "../types/executor";
 
 
 export class ExecutionManager {
@@ -31,7 +32,7 @@ export class ExecutionManager {
     }
 
 
-    newFlowExecutor(flowSchema: FlowSchema) {
+    buildFlowExecutor(flowSchema: FlowSchema) {
         return new FlowExecutor({
             flowSchema,
             nodeExecutorSupplier: this._nodeExecutorSupplier,
