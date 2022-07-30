@@ -9,7 +9,8 @@ app.get('/getUserInfoById', function (req, res) {
   const {id: userId} = req.query;
   res.json({
     userId: userId,
-    username: 'GET_name_' + Math.random()
+    name: 'GET_name_' + Math.random(),
+    age: 20
   });
 });
 

@@ -1,23 +1,158 @@
-const {ExecutionManager} = require('@flow-execute/core');
+const {ExecutionManager, ExecutionWalker} = require('@flow-execute/core');
 
 const flowSchema = {
   schemaId: '1',
   schemaName: '项目Schema',
   schemaDesc: '项目Schema',
-  flowSchemas: [],
+  flowSchemas: [
+    {
+      schemaId: 'A6',
+      schemaName: '子Flow',
+      schemaDesc: '处理用户信息子Flow',
+      flowSchemas: [],
+      nodeSchemas: [
+        {
+
+          schemaId: 'A6_1',
+          schemaName: 'handleUserName',
+          schemaDesc: '将用户名称添加后缀 "_postfix"',
+          nodeType: "RawJsNode",
+
+          context: {
+            jsCode: `
+    console.log('准备给用户信息中的名称添加后缀: ', name, age);
+    return {name: name + '_postfix', age: 18};
+    `
+          },
+          inputDataFieldDefs: [
+            {
+              name: 'name',
+              type: 'STRING'
+            },
+            {
+              name: 'age',
+              type: 'NUMBER'
+            }
+          ],
+          outputDataFieldDefs: [
+            {
+              name: 'userInfo',
+              type: "OBJECT"
+            }
+          ]
+        },
+        {
+
+          schemaId: 'A6_2',
+          schemaName: 'userInfoAgePlusTen',
+          schemaDesc: '用户信息中的年龄+10',
+          nodeType: "RawJsNode",
+
+          context: {
+            jsCode: `
+    const {name, age} = userInfo;
+    return { name, age: age + 10 };
+    `
+          },
+          inputDataFieldDefs: [
+            {
+              name: 'userInfo',
+              type: 'OBJECT'
+            },
+          ],
+          outputDataFieldDefs: [
+            {
+              name: 'name',
+              type: "STRING"
+            },
+            {
+              name: 'age',
+              type: "NUMBER"
+            }
+          ]
+        },
+        {
+          schemaId: 'A6_3',
+          schemaName: 'printUserInfo',
+          schemaDesc: '打印用户信息，并返回',
+          nodeType: "RawJsNode",
+
+          context: {
+            jsCode: `
+              alert(name);
+              alert(age);
+              return { name, age };
+            `
+          },
+          inputDataFieldDefs: [
+            {
+              name: 'name',
+              type: "STRING"
+            },
+            {
+              name: 'age',
+              type: "NUMBER"
+            }
+          ],
+          outputDataFieldDefs: [
+            {
+              name: 'userInfo',
+              type: "OBJECT"
+            }
+          ]
+        }
+      ],
+      routerSchemas: [
+        {
+          schemaId: 'rr1',
+          schemaName: '',
+          schemaDesc: '',
+          startId: 'A6_1',
+          targetId: 'A6_2',
+          condition: {
+            type: 'always'
+          }
+        },
+        {
+          schemaId: 'rr2',
+          schemaName: '',
+          schemaDesc: '',
+          startId: 'A6_2',
+          targetId: 'A6_3',
+          condition: {
+            type: 'always'
+          }
+        },
+      ],
+      inputDataFieldDefs: [
+        {
+          name: 'name',
+          type: 'STRING'
+        },
+        {
+          name: 'age',
+          type: 'NUMBER'
+        }
+      ],
+      startId: 'A6_1'
+    }
+  ],
   nodeSchemas: [
     {
 
-      schemaId: '111',
-      schemaName: 'getUserInfo',
-      schemaDesc: '根据initData得到基本的用户信息',
+      schemaId: 'A1',
+      schemaName: 'getToken',
+      schemaDesc: '获取API调用前的Token',
       nodeType: "RawJsNode",
 
       context: {
         jsCode: `
-    console.log('initData: ', initData);
-    const {name} = initData;
-    return {name: name, age: 18};
+    console.log('初始数据initData: ', initData);
+    const {originalToken} = initData;
+    return {
+        originalToken, 
+        seconds: new Date().getSeconds()
+    };
     `
       },
       inputDataFieldDefs: [
@@ -28,51 +163,119 @@ const flowSchema = {
       ],
       outputDataFieldDefs: [
         {
-          name: 'baseUserInfo',
-          type: "OBJECT"
+          name: 'originalToken',
+          type: "STRING"
+        },
+        {
+          name: 'seconds',
+          type: 'NUMBER'
         }
       ]
     },
     {
-
-      schemaId: '222',
-      schemaName: 'printUserInfoAndCalcId',
-      schemaDesc: '打印用户信息，并计算一个id',
+      schemaId: 'A2_1',
+      schemaName: 'buildEvenToken',
+      schemaDesc: '生成偶数秒的Token',
       nodeType: "RawJsNode",
 
       context: {
         jsCode: `
-    console.log('baseUserInfo: ', baseUserInfo);
-    const {name, age} = baseUserInfo;
-    return 'id_' + name + '-' + age;
+        return 'EVEN_' + originalToken;
     `
       },
       inputDataFieldDefs: [
         {
-          name: 'baseUserInfo',
-          type: 'OBJECT'
-        },
+          name: 'originalToken',
+          type: "STRING"
+        }
       ],
       outputDataFieldDefs: [
         {
-          name: 'id',
+          name: 'token',
           type: "STRING"
         }
       ]
     },
     {
-      schemaId: '333',
-      schemaName: 'getUserInfoByIdFromServer',
+      schemaId: 'A2_2',
+      schemaName: 'buildOddToken',
+      schemaDesc: '生成奇数秒的Token',
+      nodeType: "RawJsNode",
+
+      context: {
+        jsCode: `
+        return 'ODD_' + originalToken;
+    `
+      },
+      inputDataFieldDefs: [
+        {
+          name: 'originalToken',
+          type: "STRING"
+        }
+      ],
+      outputDataFieldDefs: [
+        {
+          name: 'token',
+          type: "STRING"
+        }
+      ]
+    },
+    {
+      schemaId: 'A3',
+      schemaName: 'buildApiRequest',
+      schemaDesc: '构建API请求数据',
+      nodeType: "RawJsNode",
+
+      context: {
+        jsCode: `
+        return {
+            token: token,
+            userId: 'user_id_001'
+        };
+    `
+      },
+      inputDataFieldDefs: [
+        {
+          name: 'token',
+          type: "STRING"
+        }
+      ],
+      outputDataFieldDefs: [
+        {
+          name: 'token',
+          type: "STRING"
+        },
+        {
+          name: 'userId',
+          type: "STRING"
+        }
+      ]
+    },
+    {
+      schemaId: 'A4',
+      schemaName: 'getUserInfo',
       schemaDesc: '根据ID获取服务端用户信息',
       nodeType: "ApiNode",
 
       context: {
         url: 'http://localhost:3000/getUserInfoById',
-        method: 'GET'
+        method: 'GET',
+        responseAdapter: `
+        const {status, data} = httpResponse;
+        if (status !== 200) {
+          return { id: 'err_id', name: 'err_user', age: 99 }
+        }
+        return data;
+        `,
+        headerFields: ['token'] // 从输入数据包的token添加到Header中
       },
       inputDataFieldDefs: [
         {
-          name: 'id',
+          name: 'token',
+          type: "STRING"
+        },
+        {
+          name: 'userId',
           type: "STRING"
         }
       ],
@@ -84,14 +287,18 @@ const flowSchema = {
       ]
     },
     {
-      schemaId: '444',
-      schemaName: 'printUserInfoFromServer',
-      schemaDesc: '打印服务端用户信息',
+      schemaId: 'A5',
+      schemaName: 'printUserInfoAndReturn',
+      schemaDesc: '打印服务端用户信息并返回只返回名称name、年龄age',
       nodeType: "RawJsNode",
 
       context: {
         jsCode: `
     console.log('userInfo: ', userInfo);
+    return {
+      name: userInfo.name,
+      age: userInfo.age
+    };
     `
       },
       inputDataFieldDefs: [
@@ -100,37 +307,39 @@ const flowSchema = {
           type: "OBJECT"
         },
       ],
+      outputDataFieldDefs: [
+        {
+          name: 'name',
+          type: 'STRING'
+        },
+        {
+          name: 'age',
+          type: 'NUMBER'
+        }
+      ]
     }
   ],
   routerSchemas: [
     {
       schemaId: 'r1',
       schemaName: '',
-      schemaDesc: '',
-      startId: '111',
-      targetId: '222',
+      schemaDesc: '秒钟为偶数',
+      startId: 'A1',
+      targetId: 'A2_1',
       condition: {
         type: 'expression',
-        expression: "baseUserInfo.age <= 19"
+        expression: "seconds % 2 === 0"
       }
     },
     {
       schemaId: 'r2',
       schemaName: '',
-      schemaDesc: '',
-      startId: '222',
-      targetId: '333',
+      schemaDesc: '秒钟为奇数',
+      startId: 'A1',
+      targetId: 'A2_2',
       condition: {
-        type: 'script',
-        script: `
-    const userId = id;
-    console.log('这是Router Condition 中的脚本执行， userId: ', id);
-    if ('' === userId) {
-       return false;
-    } else {
-       return true;
-    }
-    `
+        type: 'expression',
+        expression: "seconds % 2 !== 0"
       }
     },
     {
@@ -142,22 +351,81 @@ const flowSchema = {
       condition: {
         type: 'always'
       }
+    },
+    {
+      schemaId: 'r3',
+      schemaName: '',
+      schemaDesc: '',
+      startId: 'A2_1',
+      targetId: 'A3',
+      condition: {
+        type: 'always'
+      }
+    },
+    {
+      schemaId: 'r4',
+      schemaName: '',
+      schemaDesc: '',
+      startId: 'A2_2',
+      targetId: 'A3',
+      condition: {
+        type: 'always'
+      }
+    },
+    {
+      schemaId: 'r5',
+      schemaName: '',
+      schemaDesc: '',
+      startId: 'A3',
+      targetId: 'A4',
+      condition: {
+        type: 'always'
+      }
+    },
+    {
+      schemaId: 'r6',
+      schemaName: '',
+      schemaDesc: '',
+      startId: 'A4',
+      targetId: 'A5',
+      condition: {
+        type: 'always'
+      }
+    },
+    {
+      schemaId: 'r6',
+      schemaName: '',
+      schemaDesc: '',
+      startId: 'A5',
+      targetId: 'A6',
+      condition: {
+        type: 'always'
+      }
     }
   ],
-  startId: '111'
+  startId: 'A1'
 };
 
 async function run() {
 
   const executionManager = new ExecutionManager();
+  executionManager.executionWalker.snapshotDetailRecordEnable = true;
   executionManager.executionAspectHandler = (executorBaseSchema, outputDataPack) => {
     console.log('[切面处理器] - 当前要处理的节点：', executorBaseSchema);
     console.log('[切面处理器] - outputDataPack：', outputDataPack);
     return outputDataPack;
   };
+
   const flowExecutor = executionManager.buildFlowExecutor(flowSchema);
-  const outputDataPack = await flowExecutor.execute({initData: {name: 'wz'}});
-  console.log('outputDataPack：\n', outputDataPack);
+
+  const outputDataPack = await flowExecutor.execute({
+    initData: {
+      originalToken: 'abc'
+    }
+  });
+
+  console.log('流程执行结束，outputDataPack：\n', outputDataPack);
+  console.log('流程执行过程：\n', executionManager.executionWalker.executionSnapshotRecords);
 }
 
 document.querySelector('#btn').addEventListener('click', () => {

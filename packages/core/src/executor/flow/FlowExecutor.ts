@@ -112,6 +112,11 @@ export class FlowExecutor extends Executor {
 
         // 防止引用修改，使用深拷贝
         this.routerSchemas = _.cloneDeep(routerSchemas || []);
+
+        if (!this.inputDataFieldDefs
+            || this.inputDataFieldDefs.length === 0) {
+            console.warn(`当前流程（${this.executorBaseSchema.schemaId}）未定义流程的输入数据字段定义！`);
+        }
     }
 
     async execute(inputDataPack: ExecutionDataPack)
@@ -199,7 +204,7 @@ export class FlowExecutor extends Executor {
             currentExecutionSnapshot.finishTime = new Date();
 
             // 记录snapshot信息
-            this.executionWalker.record(currentExecutionSnapshot);
+            this.executionWalker?.record(currentExecutionSnapshot);
 
             console.debug(`执行器 ${executor.id} 执行完成`)
             console.debug(`执行结果数据包（outputDataPack）：`, currExecutionOutputDataPack);

@@ -37,8 +37,17 @@ interface ExecutionWalkerConfig {
  * 按照每一个执行器（Executor）的执行前后都会记录一定的信息
  */
 export class ExecutionWalker {
+
+    set snapshotDetailRecordEnable(value: boolean) {
+        this._snapshotDetailRecordEnable = value;
+    }
+
     get executionSnapshotRecords(): ExecutionSnapshot[] {
         return _.cloneDeep(this._executionSnapshotRecords);
+    }
+
+    get executionSnapshotDetailRecord(): ExecutionSnapshotDetailRecord {
+        return _.cloneDeep(this._executionSnapshotDetailRecord);
     }
 
     /**
@@ -51,7 +60,7 @@ export class ExecutionWalker {
      * 这个功能只会在开发debug时候启动
      * @private
      */
-    private readonly _snapshotDetailRecordEnable: boolean;
+    private _snapshotDetailRecordEnable: boolean;
     /**
      * 详细快照记录，会记录每一个执行器的执行当前情况
      * @private
@@ -59,10 +68,9 @@ export class ExecutionWalker {
     private readonly _executionSnapshotDetailRecord: ExecutionSnapshotDetailRecord;
 
 
-    constructor(config: ExecutionWalkerConfig) {
-        const {snapshotDetailRecordEnable} = config || {};
+    constructor(config?: ExecutionWalkerConfig) {
         this._executionSnapshotRecords = [];
-        this._snapshotDetailRecordEnable = snapshotDetailRecordEnable;
+        this._snapshotDetailRecordEnable = false;
         this._executionSnapshotDetailRecord = {};
         if (this._snapshotDetailRecordEnable) {
             console.warn('【警告】当前 ExecutionWalker 启用了详细记录（_snapshotDetailRecordEnable），在流程节点数据较多时可能引发性能问题')

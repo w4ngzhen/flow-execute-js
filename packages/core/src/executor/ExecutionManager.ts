@@ -8,23 +8,23 @@ import {ExecutionAspectHandler} from "../types/executor";
 
 export class ExecutionManager {
 
+
     private readonly _nodeExecutorSupplier: NodeExecutorSupplier;
     private _executionAspectHandler?: ExecutionAspectHandler;
-    private _snapshotDetailRecordEnable: boolean;
+    private readonly _executionWalker: ExecutionWalker;
 
     constructor() {
         this._nodeExecutorSupplier = new NodeExecutorSupplier();
-        this._snapshotDetailRecordEnable = false;
+        this._executionWalker = new ExecutionWalker();
     }
 
     set executionAspectHandler(value: ExecutionAspectHandler) {
         this._executionAspectHandler = value;
     }
 
-    set snapshotDetailRecordEnable(value: boolean) {
-        this._snapshotDetailRecordEnable = value;
+    get executionWalker(): ExecutionWalker {
+        return this._executionWalker;
     }
-
 
     registerNodeExecutor(nodeType: string,
                          constructor: NodeExecutorConstructor) {
@@ -36,9 +36,7 @@ export class ExecutionManager {
         return new FlowExecutor({
             flowSchema,
             nodeExecutorSupplier: this._nodeExecutorSupplier,
-            executionWalker: new ExecutionWalker({
-                snapshotDetailRecordEnable: this._snapshotDetailRecordEnable
-            }),
+            executionWalker: this._executionWalker,
             executionAspectHandler: this._executionAspectHandler
         })
     }
