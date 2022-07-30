@@ -1,17 +1,17 @@
-import {FlowNodeSchema} from "../../types/schema/flow-node/flow-node-schema";
+import {NodeSchema} from "../../types/schema/node/node-schema";
 import {ExecutionDataPack} from "../../types/executor";
 import {Executor} from "../Executor";
 
-export abstract class FlowNodeExecutor<ContextT = any> extends Executor {
+export abstract class NodeExecutor<ContextT = any> extends Executor {
 
-    readonly _flowNodeSchema: FlowNodeSchema<ContextT>;
+    readonly _nodeSchema: NodeSchema<ContextT>;
 
     get executorBaseSchema() {
         const {
             schemaId,
             schemaName,
             schemaDesc
-        } = this._flowNodeSchema;
+        } = this._nodeSchema;
         return {
             schemaId,
             schemaName,
@@ -23,35 +23,30 @@ export abstract class FlowNodeExecutor<ContextT = any> extends Executor {
      * 节点上下文
      */
     get context() {
-        return this._flowNodeSchema.context;
+        return this._nodeSchema.context;
     };
 
     /**
      * 节点的输入定义
      */
     get inputDataFieldDefs() {
-        return this._flowNodeSchema.inputDataFieldDefs;
+        return this._nodeSchema.inputDataFieldDefs;
     };
 
     /**
      * 节点的输出定义
      */
     get outputDataFieldDefs() {
-        return this._flowNodeSchema.outputDataFieldDefs;
+        return this._nodeSchema.outputDataFieldDefs;
     };
 
     /**
-     * FlowNode类型，需要各个节点自己实现
-     */
-    abstract get flowNodeType(): string;
-
-    /**
      * 节点构造函数
-     * @param flowNodeSchema
+     * @param nodeSchema
      */
-    constructor(flowNodeSchema: FlowNodeSchema<ContextT>) {
+    constructor(nodeSchema: NodeSchema<ContextT>) {
         super();
-        this._flowNodeSchema = flowNodeSchema;
+        this._nodeSchema = nodeSchema;
     }
 
     /**
@@ -143,13 +138,6 @@ export abstract class FlowNodeExecutor<ContextT = any> extends Executor {
     }
 
 
-    toString(): string {
-        return JSON.stringify({
-            uuid: this.id,
-            desc: this.desc,
-            type: this.flowNodeType
-        });
-    }
 }
 
 

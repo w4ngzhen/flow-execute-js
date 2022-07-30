@@ -1,4 +1,4 @@
-import {FlowNodeDataFieldDef} from "../types/schema/flow-node/flow-node-schema";
+import {ExecutionDataFieldDef} from "../types/schema/node/node-schema";
 import {ExecutionDataPack} from "../types/executor";
 
 /**
@@ -8,7 +8,7 @@ import {ExecutionDataPack} from "../types/executor";
  * @param inputDataPack
  */
 export const filterDataPackByFieldDef = (
-    inputDataFieldDefs: FlowNodeDataFieldDef[],
+    inputDataFieldDefs: ExecutionDataFieldDef[],
     inputDataPack: ExecutionDataPack): ExecutionDataPack => {
 
     const _inputDataPack = inputDataPack || {};

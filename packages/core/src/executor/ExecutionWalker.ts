@@ -9,7 +9,7 @@ interface ExecutionSnapshotDetailRecord {
     /**
      * 当前记录时候，执行结束的执行器ID
      */
-    [currentFlowNodeId: string]: {
+    [currentExecutorId: string]: {
         /**
          * 快照记录时间
          */
@@ -21,7 +21,7 @@ interface ExecutionSnapshotDetailRecord {
          * 2 => [1, 2]
          * 3 => [1, 2, 3]
          */
-        currentFullFlowNodeSnapshots: ExecutionSnapshot[];
+        currentFullExecutionSnapshots: ExecutionSnapshot[];
     };
 }
 
@@ -76,7 +76,7 @@ export class ExecutionWalker {
         if (this._snapshotDetailRecordEnable) {
             this._executionSnapshotDetailRecord[schemaId] = {
                 snapshotLogTime: new Date(),
-                currentFullFlowNodeSnapshots: _.cloneDeep(this._executionSnapshotRecords)
+                currentFullExecutionSnapshots: _.cloneDeep(this._executionSnapshotRecords)
             }
         }
     }

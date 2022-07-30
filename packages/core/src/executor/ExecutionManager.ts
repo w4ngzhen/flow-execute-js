@@ -1,5 +1,5 @@
-import {FlowNodeExecutorSupplier} from "./flow-node/FlowNodeExecutorSupplier";
-import {ExecutionAspectHandler, FlowNodeExecutorConstructor} from "../types/executor/flow-node";
+import {NodeExecutorSupplier} from "./node/NodeExecutorSupplier";
+import {ExecutionAspectHandler, NodeExecutorConstructor} from "../types/executor/node";
 import {FlowExecutor} from "./flow/FlowExecutor";
 import {FlowSchema} from "../types/schema/flow";
 import {ExecutionWalker} from "./ExecutionWalker";
@@ -7,12 +7,12 @@ import {ExecutionWalker} from "./ExecutionWalker";
 
 export class ExecutionManager {
 
-    private readonly _flowNodeExecutorSupplier: FlowNodeExecutorSupplier;
+    private readonly _nodeExecutorSupplier: NodeExecutorSupplier;
     private _executionAspectHandler?: ExecutionAspectHandler;
     private _snapshotDetailRecordEnable: boolean;
 
     constructor() {
-        this._flowNodeExecutorSupplier = new FlowNodeExecutorSupplier();
+        this._nodeExecutorSupplier = new NodeExecutorSupplier();
         this._snapshotDetailRecordEnable = false;
     }
 
@@ -25,16 +25,16 @@ export class ExecutionManager {
     }
 
 
-    registerFlowNodeExecutor(flowNodeType: string,
-                             constructor: FlowNodeExecutorConstructor) {
-        this._flowNodeExecutorSupplier.registerFlowNodeExecutor(flowNodeType, constructor)
+    registerNodeExecutor(nodeType: string,
+                         constructor: NodeExecutorConstructor) {
+        this._nodeExecutorSupplier.registerNodeExecutor(nodeType, constructor)
     }
 
 
     newFlowExecutor(flowSchema: FlowSchema) {
         return new FlowExecutor({
             flowSchema,
-            flowNodeSupplier: this._flowNodeExecutorSupplier,
+            nodeExecutorSupplier: this._nodeExecutorSupplier,
             executionWalker: new ExecutionWalker({
                 snapshotDetailRecordEnable: this._snapshotDetailRecordEnable
             }),

@@ -5,13 +5,13 @@ const flowSchema = {
   schemaName: '项目Schema',
   schemaDesc: '项目Schema',
   flowSchemas: [],
-  flowNodeSchemas: [
+  nodeSchemas: [
     {
 
       schemaId: '111',
       schemaName: 'getUserInfo',
       schemaDesc: '根据initData得到基本的用户信息',
-      flowNodeType: "RawJsFlowNode",
+      nodeType: "RawJsNode",
 
       context: {
         jsCode: `
@@ -38,7 +38,7 @@ const flowSchema = {
       schemaId: '222',
       schemaName: 'printUserInfoAndCalcId',
       schemaDesc: '打印用户信息，并计算一个id',
-      flowNodeType: "RawJsFlowNode",
+      nodeType: "RawJsNode",
 
       context: {
         jsCode: `
@@ -64,7 +64,7 @@ const flowSchema = {
       schemaId: '333',
       schemaName: 'getUserInfoByIdFromServer',
       schemaDesc: '根据ID获取服务端用户信息',
-      flowNodeType: "ApiFlowNode",
+      nodeType: "ApiNode",
 
       context: {
         url: 'http://localhost:3000/getUserInfoById',
@@ -87,7 +87,7 @@ const flowSchema = {
       schemaId: '444',
       schemaName: 'printUserInfoFromServer',
       schemaDesc: '打印服务端用户信息',
-      flowNodeType: "RawJsFlowNode",
+      nodeType: "RawJsNode",
 
       context: {
         jsCode: `
@@ -150,8 +150,8 @@ const flowSchema = {
 async function run() {
 
   const executionManager = new ExecutionManager();
-  executionManager.executionAspectHandler = (flowNode, outputDataPack) => {
-    console.log('[切面处理器] - 当前要处理的节点：', flowNode);
+  executionManager.executionAspectHandler = (executorBaseSchema, outputDataPack) => {
+    console.log('[切面处理器] - 当前要处理的节点：', executorBaseSchema);
     console.log('[切面处理器] - outputDataPack：', outputDataPack);
     return outputDataPack;
   };

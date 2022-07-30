@@ -30,12 +30,12 @@ export interface RouterCondition {
 export interface RouterSchema extends BaseSchema {
     /**
      * 开始执行器ID，
-     * 这里的节点是指可执行节点，Flow、FlowNode都是可以被执行的节点
+     * Flow、Node都有对应的执行器
      */
     startId: string;
     /**
      * 目标执行ID
-     * 这里的节点是指可执行节点，Flow、FlowNode都是可以被执行的节点
+     * Flow、Node都有对应的执行器
      */
     targetId: string;
     /**

@@ -1,4 +1,4 @@
-import {FlowNodeDataFieldDef, FlowNodeSchema} from "../flow-node/flow-node-schema";
+import {ExecutionDataFieldDef, NodeSchema} from "../node/node-schema";
 import {RouterSchema} from "../router";
 import {BaseSchema} from "../index";
 
@@ -10,7 +10,7 @@ export interface FlowSchema extends BaseSchema {
     /**
      * 流程具备的节点Schema
      */
-    flowNodeSchemas: FlowNodeSchema[];
+    nodeSchemas: NodeSchema[];
     /**
      * 该流程中的路由
      */
@@ -22,10 +22,10 @@ export interface FlowSchema extends BaseSchema {
     /**
      * 流程的输入定义
      */
-    inputDataFieldDefs?: FlowNodeDataFieldDef[];
+    inputDataFieldDefs?: ExecutionDataFieldDef[];
 
     /**
      * 流程的输出定义
      */
-    outputDataFieldDefs?: FlowNodeDataFieldDef[];
+    outputDataFieldDefs?: ExecutionDataFieldDef[];
 }

@@ -1,5 +1,5 @@
 import {ExecutionDataPack} from "../types/executor";
-import {FlowNodeDataFieldDef} from "../types/schema/flow-node/flow-node-schema";
+import {ExecutionDataFieldDef} from "../types/schema/node/node-schema";
 import {BaseSchema} from "../types/schema";
 
 export abstract class Executor {
@@ -33,12 +33,27 @@ export abstract class Executor {
     /**
      * 执行器的输入定义
      */
-    abstract get inputDataFieldDefs(): FlowNodeDataFieldDef[];
+    abstract get inputDataFieldDefs(): ExecutionDataFieldDef[];
 
     /**
      * 执行器的输出定义
      */
-    abstract get outputDataFieldDefs(): FlowNodeDataFieldDef[];
+    abstract get outputDataFieldDefs(): ExecutionDataFieldDef[];
 
+    /**
+     * 每个具体的执行器要实现的执行内容
+     * @param inputDataPack
+     * @param args
+     */
     abstract execute(inputDataPack: ExecutionDataPack, ...args: any): Promise<ExecutionDataPack>;
+
+    /**
+     * 重写toString
+     */
+    toString(): string {
+        return JSON.stringify({
+            id: this.id,
+            desc: this.desc
+        });
+    }
 }

@@ -1,6 +1,6 @@
-import {FlowNodeSchema} from "./flow-node-schema";
+import {NodeSchema} from "./node-schema";
 
-export interface ApiFlowNodeContext {
+export interface ApiNodeContext {
     /**
      * 请求地址
      */
@@ -31,6 +31,6 @@ export interface ApiFlowNodeContext {
     timeout: number;
 }
 
-export interface APiFlowNodeSchema extends FlowNodeSchema<ApiFlowNodeContext> {
+export interface ApiNodeSchema extends NodeSchema<ApiNodeContext> {
 
 }

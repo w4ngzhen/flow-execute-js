@@ -1,4 +1,4 @@
-import {FlowNodeExecutor} from "../flow-node/FlowNodeExecutor";
+import {NodeExecutor} from "../node/NodeExecutor";
 import * as _ from "lodash";
 import {RouterSchema} from "../../types/schema/router";
 import {FlowExecutorConfig} from "../../types/executor/flow";
@@ -53,7 +53,7 @@ export class FlowExecutor extends Executor {
      * 存储的所有流程节点
      * @private
      */
-    private readonly flowNodeExecutors: FlowNodeExecutor[];
+    private readonly nodeExecutors: NodeExecutor[];
 
     /**
      * 存储的所有路由
@@ -90,7 +90,7 @@ export class FlowExecutor extends Executor {
 
         const {
             flowSchemas,
-            flowNodeSchemas,
+            nodeSchemas,
             routerSchemas,
         } = flowSchema;
 
@@ -105,9 +105,9 @@ export class FlowExecutor extends Executor {
         });
 
         // 构建当前流程中所有流程节点执行器
-        this.flowNodeExecutors = (flowNodeSchemas || []).map(flowNodeSchema => {
+        this.nodeExecutors = (nodeSchemas || []).map(nodeSchema => {
             console.debug('构建流程节点执行器');
-            return this._flowExecutorConfig.flowNodeSupplier.getFlowNodeExecutor(flowNodeSchema);
+            return this._flowExecutorConfig.nodeExecutorSupplier.getNodeExecutor(nodeSchema.nodeType);
         });
 
         // 防止引用修改，使用深拷贝
@@ -118,7 +118,7 @@ export class FlowExecutor extends Executor {
         : Promise<ExecutionDataPack> {
         let executor: Executor;
         const startNodeExecutor =
-            this.flowNodeExecutors.find(node => node.id === this.startId);
+            this.nodeExecutors.find(node => node.id === this.startId);
         if (startNodeExecutor) {
             executor = startNodeExecutor;
         } else {
@@ -129,16 +129,19 @@ export class FlowExecutor extends Executor {
             throw new Error('找不到启动执行器：' + this.startId);
         }
 
-        const result = await this.innerExecute(
+        // 得到的ExecutionDataPack分两种情况，
+        // 但是这个数据包在内部有两种可能：
+        // 1、节点执行得到数据包，这个数据包已经在流程节点内部进行数据因涉过
+        const outputDataPack: ExecutionDataPack = await this.innerExecute(
             executor,
             inputDataPack
         );
-        if (!result) {
+        if (!outputDataPack) {
             console.error('流程执行异常终止');
             return {};
         }
 
-        return result;
+        return outputDataPack;
     }
 
     /**
@@ -167,7 +170,7 @@ export class FlowExecutor extends Executor {
         };
 
         // 切面封装
-        const aspectHandle = async (flowNodeBaseSchema: BaseSchema, originalOutputDataPack: ExecutionDataPack): Promise<ExecutionDataPack> => {
+        const aspectHandle = async (baseSchema: BaseSchema, originalOutputDataPack: ExecutionDataPack): Promise<ExecutionDataPack> => {
             if (!this.executionAspectHandler
                 || typeof this.executionAspectHandler !== 'function') {
                 return originalOutputDataPack;
@@ -175,10 +178,10 @@ export class FlowExecutor extends Executor {
             // 如配置了切面handler，那么使用handler进行数据处理
             try {
                 const handledOutputData =
-                    await this.executionAspectHandler(flowNodeBaseSchema, originalOutputDataPack);
+                    await this.executionAspectHandler(baseSchema, originalOutputDataPack);
                 if (typeof originalOutputDataPack !== 'undefined'
                     && typeof handledOutputData === 'undefined') {
-                    console.warn('你可能在flowNodeExecutionAspectHandler忘记了返回数据？')
+                    console.warn('你可能在 executionAspectHandler 忘记了返回数据？')
                 }
                 return handledOutputData;
             } catch (e) {
@@ -248,8 +251,12 @@ export class FlowExecutor extends Executor {
             console.debug('无满足路由，流程结束')
             return;
         }
-        const targetNodeId = satisfiedRouter.targetId;
-        const targetNodeExecutor = this.flowNodeExecutors.find(fnExecutor => fnExecutor.id === targetNodeId);
+        const targetId = satisfiedRouter.targetId;
+
+        // 根据targetId依然要从流程执行器和流程节点执行器中查找
+
+
+        const targetNodeExecutor = this.nodeExecutors.find(fnExecutor => fnExecutor.id === targetId);
         if (!targetNodeExecutor) {
             // 找不到目标node，中止
             // todo 可以增加日志记录
@@ -261,4 +268,18 @@ export class FlowExecutor extends Executor {
     }
 
 
+    /**
+     * 根据执行器id从流程执行器列表/流程节点执行器中
+     * @param executorId
+     * @private
+     */
+    private getExecutor(executorId: string): FlowExecutor | NodeExecutor {
+        const startNodeExecutor =
+            this.nodeExecutors.find(nodeExecutor => nodeExecutor.id === this.startId);
+        if (startNodeExecutor) {
+            return startNodeExecutor;
+        } else {
+            return this.flowExecutors.find(flowExecutor => flowExecutor.id === this.startId);
+        }
+    }
 }

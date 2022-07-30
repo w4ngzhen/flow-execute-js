@@ -1,7 +1,7 @@
-export {FlowNodeExecutor} from "./executor/flow-node/FlowNodeExecutor";
+export {NodeExecutor} from "./executor/node/NodeExecutor";
 export {RouterSchema, RouterCondition} from './types/schema/router';
 export {FlowExecutor} from "./executor/flow/FlowExecutor";
-export {FlowNodeSchema} from "./types/schema/flow-node/flow-node-schema";
-export {APiFlowNodeSchema} from "./types/schema/flow-node/api-flow-node-schema";
-export {RawJsFlowNodeSchema} from "./types/schema/flow-node/raw-js-flow-node-schema";
+export {NodeSchema} from "./types/schema/node/node-schema";
+export {ApiNodeSchema} from "./types/schema/node/api-node-schema";
+export {RawJsNodeSchema} from "./types/schema/node/raw-js-node-schema";
 export {ExecutionManager} from "./executor/ExecutionManager";

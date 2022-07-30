@@ -1,13 +1,9 @@
-import {FlowNodeExecutor} from "../FlowNodeExecutor";
-import {RawJsFlowNodeContext} from "../../../types/schema/flow-node/raw-js-flow-node-schema";
+import {NodeExecutor} from "../NodeExecutor";
+import {RawJsNodeContext} from "../../../types/schema/node/raw-js-node-schema";
 import {ExecutionDataPack} from "../../../types/executor";
 
-export class RawJsFlowNodeExecutor
-    extends FlowNodeExecutor<RawJsFlowNodeContext> {
-
-    get flowNodeType(): string {
-        return "RawJsFlowNodeExecutor";
-    }
+export class RawJsNodeExecutor
+    extends NodeExecutor<RawJsNodeContext> {
 
     async executeImpl(
         inputDataPack: ExecutionDataPack,
